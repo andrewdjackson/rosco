@@ -27,13 +27,13 @@ func (r *MEMSReader) Connect() (bool, error) {
 	r.connected = false
 
 	if err := r.connectToSerialPort(r.port); err != nil {
-		log.Errorf("error opening serial serialPort (%s) status : (%+v)", r.port, err)
+		log.Errorf("error opening serial (%s) status : (%+v)", r.port, err)
 		// connect failure if we cannot open the serialPort
 		return false, err
 	}
 
 	if err := r.initialiseMemsECU(); err != nil {
-		log.Errorf("error opening serial serialPort (%s) status : (%+v)", r.port, err)
+		log.Errorf("error initialising ecu (%s) status : (%+v)", r.port, err)
 		// connect failure if we cannot initialise successfully
 		// disconnect from the ecu
 		_ = r.Disconnect()
@@ -95,7 +95,7 @@ func (r *MEMSReader) connectToSerialPort(port string) error {
 	log.Infof("attempting to open serial serialPort %s", port)
 
 	// connect to the ecu, timeout if we don't get data after a couple of seconds
-	c := &serial.Config{Name: port, Baud: 9600, ReadTimeout: time.Millisecond * 2000}
+	c := &serial.Config{Name: port, Baud: 9600, ReadTimeout: time.Millisecond * 500}
 
 	if r.serialPort, err = serial.OpenPort(c); err != nil {
 		log.Errorf("error opening serial port (%s)", err)
@@ -108,11 +108,11 @@ func (r *MEMSReader) connectToSerialPort(port string) error {
 // The initialisation sequence is as follows:
 //
 // 1. Send command CA (MEMS_InitCommandA)
-// 2. Recieve response CA
+// 2. Receive response CA
 // 3. Send command 75 (MEMS_InitCommandB)
-// 4. Recieve response 75
+// 4. Receive response 75
 // 5. Send request ECU ID command D0 (MEMS_InitECUID)
-// 6. Recieve response D0 XX XX XX XX
+// 6. Receive response D0 XX XX XX XX
 //
 func (r *MEMSReader) initialiseMemsECU() error {
 	_ = r.serialPort.Flush()
@@ -190,7 +190,6 @@ func (r *MEMSReader) readSerial(command []byte) ([]byte, error) {
 				return receivedBytes, err
 				// drop out of loop, send back a 0x00 byte array response
 				// this prevents the loop getting blocked on a read error
-
 				//count = size
 				//receivedBytes = append(receivedBytes, b...)
 			} else {
