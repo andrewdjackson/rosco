@@ -66,12 +66,12 @@ func (ecu *ECUReaderInstance) Disconnect() error {
 	}
 
 	ecu.Status.Connected = false
-
-	ecu.resetStatus()
 	ecu.closeLog()
 
 	// save a scenario file
 	_ = ecu.saveScenario()
+	// reset status
+	ecu.resetStatus()
 
 	return err
 }

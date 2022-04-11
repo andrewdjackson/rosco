@@ -52,7 +52,7 @@ func Test_rosco_Disconnect(t *testing.T) {
 	then.AssertThat(t, r.Status.Connected, is.False())
 }
 
-func Test_rosco_connectToeECU(t *testing.T) {
+func Test_rosco_connectToECU(t *testing.T) {
 	virtualPort := getVirtualPort()
 	r := NewECUReaderInstance()
 	r.ecuReader = NewECUReader(virtualPort)
