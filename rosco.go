@@ -249,7 +249,7 @@ func (ecu *ECUReaderInstance) readRawDataFrames() ([]byte, []byte, error) {
 func (ecu *ECUReaderInstance) openLog() {
 	// initialise logging
 	if ecu.isMEMSReader() {
-		ecu.dataLogger = NewMemsDataLogger(GetLogFolder(), ecu.Status.ECUSerial)
+		ecu.dataLogger = NewMemsDataLogger(GetLogFolder(), ecu.Status.ECUID)
 	}
 }
 

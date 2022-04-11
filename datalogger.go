@@ -32,11 +32,11 @@ const DiagnosticsCSVHeader = "engine_running,warming,at_operating_temp,engine_id
 	"lambda_range_fault,lambda_oscillation_fault,thermostat_fault,crankshaft_sensor_fault,coil_fault"
 
 // NewMemsDataLogger logs the mems data to a CSV file
-func NewMemsDataLogger(folder string, prefix string) *MemsDataLogger {
+func NewMemsDataLogger(folder string, suffix string) *MemsDataLogger {
 	var err error
 
 	datalogger := &MemsDataLogger{}
-	filename := getFilename(folder, prefix)
+	filename := getFilename(folder, suffix)
 
 	if err = openFile(datalogger, filename); err == nil {
 		datalogger.IsOpen = true
@@ -120,14 +120,14 @@ func (datalogger *MemsDataLogger) Close() {
 	}
 }
 
-func getFilename(folder string, prefix string) string {
+func getFilename(folder string, suffix string) string {
 	currentTime := time.Now()
 	dateTime := currentTime.Format("2006-01-02 15:04:05")
 	dateTime = strings.ReplaceAll(dateTime, ":", "")
 	dateTime = strings.ReplaceAll(dateTime, " ", "-")
 	dateTime = dateTime[:len(dateTime)-2] + "00"
 
-	filename := fmt.Sprintf("%s/%s-%s.csv", folder, prefix, dateTime)
+	filename := fmt.Sprintf("%s/%s-%s.csv", folder, dateTime, suffix)
 	return filepath.FromSlash(filename)
 }
 
