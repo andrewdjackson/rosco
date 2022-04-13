@@ -85,7 +85,7 @@ func Test_mems_SendAndReceive(t *testing.T) {
 	// expect id string response
 	response, err = r.SendAndReceive([]byte{0xD0})
 	then.AssertThat(t, err, is.Nil())
-	then.AssertThat(t, response, is.EqualTo([]byte{0xD0, 0x99, 0x00, 0x03, 0x03}))
+	then.AssertThat(t, response, is.EqualTo([]byte{0xD0, 0x99, 0x00, 0x02, 0x03}))
 }
 
 func Test_mems_commandMatchesResponse(t *testing.T) {

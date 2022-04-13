@@ -17,7 +17,7 @@ func Test_rosco_getECUID(t *testing.T) {
 
 	response, err := r.getECUID()
 	then.AssertThat(t, err, is.Nil())
-	then.AssertThat(t, response, is.EqualTo("99000303"))
+	then.AssertThat(t, response, is.EqualTo("99000203"))
 }
 
 func Test_rosco_getECUSerial(t *testing.T) {
@@ -31,7 +31,7 @@ func Test_rosco_getECUSerial(t *testing.T) {
 
 	response, err := r.getECUSerial()
 	then.AssertThat(t, err, is.Nil())
-	then.AssertThat(t, response, is.EqualTo("ABNMP00399000303"))
+	then.AssertThat(t, response, is.EqualTo("ABNMP002990002034142"))
 }
 
 func Test_rosco_getIACPosition(t *testing.T) {

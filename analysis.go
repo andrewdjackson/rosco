@@ -52,7 +52,8 @@ const (
 	lowestEngineWarmTemperature        = 78
 	engineOperatingTemp                = 80
 	engineNotRunningRPM                = 0
-	expectedDTC5Value                  = 255
+	expectedHighDTC5Value              = 255
+	expectedLowDTCValue                = 0
 	maximumEngineRPM                   = 6000
 	maximumIdleBasePosition            = 250
 	maximumAirIntakeTemperature        = 80
@@ -164,5 +165,5 @@ func (df *DataframeAnalysis) isDTC5Valid(data MemsData) bool {
 	// observed behaviour is that when dtc5 changes from 255, a number of parameters change that can alter
 	// the df, for example jack count leaps to 125
 	// since this behaviour is not yet understood, we'll remove these entries
-	return data.DTC5 == expectedDTC5Value
+	return data.DTC5 == expectedLowDTCValue || data.DTC5 == expectedHighDTC5Value && data.JackCount <= highestJackCount
 }

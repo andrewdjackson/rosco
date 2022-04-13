@@ -368,6 +368,7 @@ func Test_isLambdaFaulty(t *testing.T) {
 		IntakeAirTemp:    goodIntakeTemperature,
 		IdleBasePosition: goodIdleBasePosition,
 		DTC5:             expectedDTC5,
+		JackCount:        highestJackCount - 1,
 		BatteryVoltage:   goodBattery,
 	}
 
@@ -381,6 +382,7 @@ func Test_isLambdaFaulty(t *testing.T) {
 		IntakeAirTemp:    goodIntakeTemperature,
 		IdleBasePosition: goodIdleBasePosition,
 		DTC5:             expectedDTC5,
+		JackCount:        highestJackCount - 1,
 		BatteryVoltage:   goodBattery,
 	}
 
@@ -481,6 +483,7 @@ func Test_isLambdaFaulty(t *testing.T) {
 		IntakeAirTemp:    goodIntakeTemperature,
 		IdleBasePosition: goodIdleBasePosition,
 		DTC5:             expectedDTC5,
+		JackCount:        highestJackCount - 1,
 		BatteryVoltage:   goodBattery,
 	}
 
@@ -498,6 +501,7 @@ func Test_isLambdaFaulty(t *testing.T) {
 		IntakeAirTemp:    goodIntakeTemperature,
 		IdleBasePosition: goodIdleBasePosition,
 		DTC5:             expectedDTC5,
+		JackCount:        highestJackCount - 1,
 		BatteryVoltage:   goodBattery,
 	}
 
@@ -511,6 +515,7 @@ func Test_isLambdaFaulty(t *testing.T) {
 		IntakeAirTemp:    goodIntakeTemperature,
 		IdleBasePosition: goodIdleBasePosition,
 		DTC5:             expectedDTC5,
+		JackCount:        highestJackCount - 1,
 		BatteryVoltage:   goodBattery,
 	}
 
@@ -524,6 +529,7 @@ func Test_isLambdaFaulty(t *testing.T) {
 		IntakeAirTemp:    goodIntakeTemperature,
 		IdleBasePosition: goodIdleBasePosition,
 		DTC5:             expectedDTC5,
+		JackCount:        highestJackCount - 1,
 		BatteryVoltage:   goodBattery,
 	}
 
