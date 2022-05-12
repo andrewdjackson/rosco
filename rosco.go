@@ -48,6 +48,7 @@ func (ecu *ECUReaderInstance) ConnectAndInitialiseECU(port string) (bool, error)
 			// assign the responder
 			if reflect.TypeOf(ecu.EcuReader) == reflect.TypeOf(&ScenarioReader{}) {
 				ecu.Responder = ecu.EcuReader.(*ScenarioReader).Responder
+				log.Infof("ECUReader is a Scenario reader, assigning responder")
 			}
 
 			ecu.openLog()
