@@ -37,10 +37,6 @@ func (ecu *ECUReaderInstance) ConnectAndInitialiseECU(port string) (bool, error)
 
 	ecu.EcuReader = NewECUReader(port)
 
-	if reflect.TypeOf(ecu.EcuReader) == reflect.TypeOf(&ScenarioReader{}) {
-		ecu.Responder = ecu.EcuReader.(*ScenarioReader).Responder
-	}
-
 	if connected, err = ecu.connectToECU(); err == nil {
 		if connected {
 			ecu.Status.Connected = true
@@ -48,6 +44,11 @@ func (ecu *ECUReaderInstance) ConnectAndInitialiseECU(port string) (bool, error)
 			ecu.Status.ECUID, err = ecu.getECUID()
 			ecu.Status.ECUSerial, err = ecu.getECUSerial()
 			ecu.Status.IACPosition, err = ecu.GetIACPosition()
+
+			// assign the responder
+			if reflect.TypeOf(ecu.EcuReader) == reflect.TypeOf(&ScenarioReader{}) {
+				ecu.Responder = ecu.EcuReader.(*ScenarioReader).Responder
+			}
 
 			ecu.openLog()
 		}
