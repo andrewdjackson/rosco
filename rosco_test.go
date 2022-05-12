@@ -31,8 +31,8 @@ func rosco_ConnectAndInitialiseECU(t *testing.T, port string) {
 	then.AssertThat(t, r.Status.Connected, is.True())
 	then.AssertThat(t, connected, is.True())
 
-	if reflect.TypeOf(r.ecuReader) == reflect.TypeOf(&ScenarioReader{}) {
-		then.AssertThat(t, r.ecuReader.(*ScenarioReader).Responder, is.Not(is.Nil()))
+	if reflect.TypeOf(r.EcuReader) == reflect.TypeOf(&ScenarioReader{}) {
+		then.AssertThat(t, r.EcuReader.(*ScenarioReader).Responder, is.Not(is.Nil()))
 	}
 
 	_ = r.Disconnect()
@@ -55,7 +55,7 @@ func Test_rosco_Disconnect(t *testing.T) {
 func Test_rosco_connectToECU(t *testing.T) {
 	virtualPort := getVirtualPort()
 	r := NewECUReaderInstance()
-	r.ecuReader = NewECUReader(virtualPort)
+	r.EcuReader = NewECUReader(virtualPort)
 	connected, err := r.connectToECU()
 
 	then.AssertThat(t, err, is.Nil())
@@ -73,7 +73,7 @@ func Test_rosco_ResetDiagnostics(t *testing.T) {
 func Test_rosco_GetDataframes(t *testing.T) {
 	virtualPort := getVirtualPort()
 	r := NewECUReaderInstance()
-	r.ecuReader = NewECUReader(virtualPort)
+	r.EcuReader = NewECUReader(virtualPort)
 	connected, err := r.connectToECU()
 
 	then.AssertThat(t, err, is.Nil())
@@ -89,7 +89,7 @@ func Test_rosco_GetDataframes(t *testing.T) {
 func Test_rosco_SustainedGetDataframes(t *testing.T) {
 	virtualPort := getVirtualPort()
 	r := NewECUReaderInstance()
-	r.ecuReader = NewECUReader(virtualPort)
+	r.EcuReader = NewECUReader(virtualPort)
 	connected, err := r.connectToECU()
 
 	then.AssertThat(t, err, is.Nil())

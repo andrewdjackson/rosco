@@ -9,7 +9,7 @@ import (
 func Test_rosco_getECUID(t *testing.T) {
 	virtualPort := getVirtualPort()
 	r := NewECUReaderInstance()
-	r.ecuReader = NewECUReader(virtualPort)
+	r.EcuReader = NewECUReader(virtualPort)
 	connected, err := r.connectToECU()
 
 	then.AssertThat(t, err, is.Nil())
@@ -23,7 +23,7 @@ func Test_rosco_getECUID(t *testing.T) {
 func Test_rosco_getECUSerial(t *testing.T) {
 	virtualPort := getVirtualPort()
 	r := NewECUReaderInstance()
-	r.ecuReader = NewECUReader(virtualPort)
+	r.EcuReader = NewECUReader(virtualPort)
 	connected, err := r.connectToECU()
 
 	then.AssertThat(t, err, is.Nil())
@@ -37,7 +37,7 @@ func Test_rosco_getECUSerial(t *testing.T) {
 func Test_rosco_getIACPosition(t *testing.T) {
 	virtualPort := getVirtualPort()
 	r := NewECUReaderInstance()
-	r.ecuReader = NewECUReader(virtualPort)
+	r.EcuReader = NewECUReader(virtualPort)
 	connected, err := r.connectToECU()
 
 	then.AssertThat(t, err, is.Nil())

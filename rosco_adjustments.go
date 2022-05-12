@@ -66,7 +66,7 @@ func (ecu *ECUReaderInstance) decrementAdjustment(cmd []byte, steps int) (int, e
 
 	log.Infof("decrementing adjustable command %X by %d steps", data, steps)
 	for step := steps; step < 0; step++ {
-		if data, err = ecu.ecuReader.SendAndReceive(cmd); err == nil {
+		if data, err = ecu.EcuReader.SendAndReceive(cmd); err == nil {
 			log.Infof("command %X deccremented to %X", cmd, data)
 		}
 	}
@@ -85,7 +85,7 @@ func (ecu *ECUReaderInstance) incementAdjustment(cmd []byte, steps int) (int, er
 	log.Infof("incrementing adjustable command %X by %d steps", data, steps)
 
 	for step := 0; step < steps; step++ {
-		if data, err = ecu.ecuReader.SendAndReceive(cmd); err == nil {
+		if data, err = ecu.EcuReader.SendAndReceive(cmd); err == nil {
 			log.Infof("command %X incremented to %X", cmd, data)
 		}
 	}

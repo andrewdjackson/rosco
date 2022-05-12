@@ -59,11 +59,11 @@ func (ecu *ECUReaderInstance) activateActuator(activateCommand []byte, deactivat
 	var data []byte
 
 	if activate {
-		if data, err = ecu.ecuReader.SendAndReceive(activateCommand); err == nil {
+		if data, err = ecu.EcuReader.SendAndReceive(activateCommand); err == nil {
 			log.Infof("actuator %X activated (%X)", activateCommand, data)
 		}
 	} else {
-		if data, err = ecu.ecuReader.SendAndReceive(deactivateCommand); err == nil {
+		if data, err = ecu.EcuReader.SendAndReceive(deactivateCommand); err == nil {
 			log.Infof("actuator %X deactivated (%X)", deactivateCommand, data)
 		}
 	}

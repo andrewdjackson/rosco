@@ -40,7 +40,7 @@ func (ecu *ECUReaderInstance) updateECUState(command []byte) error {
 	var err error
 	var data []byte
 
-	if data, err = ecu.ecuReader.SendAndReceive(command); err == nil {
+	if data, err = ecu.EcuReader.SendAndReceive(command); err == nil {
 		log.Infof("updated ECU state with clear, reset or heartbeat (%X)", data)
 	}
 
@@ -61,7 +61,7 @@ func (ecu *ECUReaderInstance) getECUID() (string, error) {
 
 	log.Info("reading ecu id")
 
-	if data, err = ecu.ecuReader.SendAndReceive(MEMSInitECUID); err == nil {
+	if data, err = ecu.EcuReader.SendAndReceive(MEMSInitECUID); err == nil {
 		ecuId = fmt.Sprintf("%X", data[1:])
 		log.Infof("ecu id %X received", ecuId)
 	} else {
@@ -78,7 +78,7 @@ func (ecu *ECUReaderInstance) getECUSerial() (string, error) {
 
 	log.Info("reading ecu serial")
 
-	if data, err = ecu.ecuReader.SendAndReceive(MEMSGetECUSerial); err == nil {
+	if data, err = ecu.EcuReader.SendAndReceive(MEMSGetECUSerial); err == nil {
 		ecuSerial = fmt.Sprintf("%s%X", data[1:9], data[9:])
 		log.Infof("ecu serial %s received", ecuSerial)
 	} else {
@@ -94,7 +94,7 @@ func (ecu *ECUReaderInstance) GetIACPosition() (int, error) {
 
 	log.Info("reading ecu iac position ")
 
-	if data, err = ecu.ecuReader.SendAndReceive(MEMSGetIACPosition); err == nil {
+	if data, err = ecu.EcuReader.SendAndReceive(MEMSGetIACPosition); err == nil {
 		log.Infof("ecu iac position, received (%X)", data)
 		return int(data[1]), err
 	} else {

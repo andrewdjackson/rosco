@@ -14,7 +14,7 @@ import (
 
 // ECUReaderInstance communication structure for MEMS
 type ECUReaderInstance struct {
-	ecuReader   ECUReader
+	EcuReader   ECUReader
 	dataLogger  *MemsDataLogger
 	Status      *ECUStatus
 	Diagnostics *DataframeAnalysis
@@ -35,10 +35,10 @@ func (ecu *ECUReaderInstance) ConnectAndInitialiseECU(port string) (bool, error)
 	var err error
 	var connected bool
 
-	ecu.ecuReader = NewECUReader(port)
+	ecu.EcuReader = NewECUReader(port)
 
-	if reflect.TypeOf(ecu.ecuReader) == reflect.TypeOf(&ScenarioReader{}) {
-		ecu.Responder = ecu.ecuReader.(*ScenarioReader).Responder
+	if reflect.TypeOf(ecu.EcuReader) == reflect.TypeOf(&ScenarioReader{}) {
+		ecu.Responder = ecu.EcuReader.(*ScenarioReader).Responder
 	}
 
 	if connected, err = ecu.connectToECU(); err == nil {
@@ -59,7 +59,7 @@ func (ecu *ECUReaderInstance) ConnectAndInitialiseECU(port string) (bool, error)
 func (ecu *ECUReaderInstance) Disconnect() error {
 	var err error
 
-	if err = ecu.ecuReader.Disconnect(); err == nil {
+	if err = ecu.EcuReader.Disconnect(); err == nil {
 		log.Info("disconnected ecu")
 	} else {
 		log.Warnf("error disconnecting (%s)", err)
@@ -126,7 +126,7 @@ func (ecu *ECUReaderInstance) GetDataframes() (MemsData, error) {
 }
 
 func (ecu *ECUReaderInstance) connectToECU() (bool, error) {
-	return ecu.ecuReader.Connect()
+	return ecu.EcuReader.Connect()
 }
 
 func (ecu *ECUReaderInstance) createMemsDataframe(df80 DataFrame80, df7d DataFrame7d) MemsData {
@@ -233,12 +233,12 @@ func (ecu *ECUReaderInstance) readRawDataFrames() ([]byte, []byte, error) {
 	var err error
 	var dataframe7d, dataframe80 []byte
 
-	if dataframe80, err = ecu.ecuReader.SendAndReceive(MEMSReqData80); err != nil {
+	if dataframe80, err = ecu.EcuReader.SendAndReceive(MEMSReqData80); err != nil {
 		dferr = fmt.Errorf("error recieving dataframe 0x80 (%s)", err)
 		log.Errorf("%s", dferr)
 	}
 
-	if dataframe7d, err = ecu.ecuReader.SendAndReceive(MEMSReqData7D); err != nil {
+	if dataframe7d, err = ecu.EcuReader.SendAndReceive(MEMSReqData7D); err != nil {
 		dferr = fmt.Errorf("error recieving dataframe 0x7d (%s)", err)
 		log.Errorf("%s", dferr)
 	}
@@ -306,5 +306,5 @@ func (ecu *ECUReaderInstance) saveScenario() error {
 }
 
 func (ecu *ECUReaderInstance) isMEMSReader() bool {
-	return reflect.TypeOf(ecu.ecuReader) == reflect.TypeOf(&MEMSReader{})
+	return reflect.TypeOf(ecu.EcuReader) == reflect.TypeOf(&MEMSReader{})
 }
