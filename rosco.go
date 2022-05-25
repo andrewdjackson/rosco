@@ -40,8 +40,7 @@ func (ecu *ECUReaderInstance) ConnectAndInitialiseECU(port string) (bool, error)
 	if connected, err = ecu.connectToECU(); err == nil {
 		if connected {
 			ecu.Status.Connected = true
-			// get the ecu id, serial number and iac position
-			ecu.Status.ECUID, err = ecu.getECUID()
+			// get the ecu serial number and iac position
 			ecu.Status.ECUSerial, err = ecu.getECUSerial()
 			ecu.Status.IACPosition, err = ecu.GetIACPosition()
 
