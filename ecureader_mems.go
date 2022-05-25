@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/distributed/sers"
 	log "github.com/sirupsen/logrus"
+	"time"
 )
 
 type MEMSReader struct {
@@ -96,7 +97,7 @@ func (r *MEMSReader) connectToSerialPort(port string) error {
 		if err = r.serialPort.SetMode(9600, 8, sers.N, 1, sers.NO_HANDSHAKE); err != nil {
 			log.Errorf("error configuring serial port (%s)", err)
 		} else {
-			if err = r.serialPort.SetReadParams(1, 2); err != nil {
+			if err = r.serialPort.SetReadParams(0, 2.0); err != nil {
 				log.Errorf("error setting serial port timeouts (%s)", err)
 			}
 		}
@@ -168,6 +169,7 @@ func (r *MEMSReader) initialiseMemsECU() error {
 func (r *MEMSReader) readSerial(command []byte) ([]byte, error) {
 	var bytesRead int
 	var err error
+	var retry int
 
 	size, err := getResponseSize(command)
 
@@ -179,18 +181,24 @@ func (r *MEMSReader) readSerial(command []byte) ([]byte, error) {
 
 	if r.serialPort != nil {
 		// read all the expected bytes before returning the receivedBytes
+		retry = 0
+
 		for count := 0; count < size; {
 			// wait for a response from MEMS
 			bytesRead, err = r.serialPort.Read(b)
 
 			if bytesRead == 0 {
-				err = fmt.Errorf("0 bytes received, serial port read error (%s)", err)
-				log.Errorf("%s", err)
-				return receivedBytes, err
-				// drop out of loop, send back a 0x00 byte array response
-				// this prevents the loop getting blocked on a read error
-				//count = size
-				//receivedBytes = append(receivedBytes, b...)
+				// wait for data and retry
+				time.Sleep(25 * time.Millisecond)
+				retry++
+
+				if retry >= 5 {
+					// drop out of loop, send back a 0x00 byte array response
+					// this prevents the loop getting blocked on a read error
+					err = fmt.Errorf("0 bytes received, serial port read error after %d retries (%s)", retry, err)
+					log.Errorf("(%s)", err)
+					return receivedBytes, err
+				}
 			} else {
 				// append the read bytes to the receivedBytes frame
 				receivedBytes = append(receivedBytes, b[:bytesRead]...)
