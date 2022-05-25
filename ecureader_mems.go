@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/distributed/sers"
 	log "github.com/sirupsen/logrus"
+	"strings"
 	"time"
 )
 
@@ -19,7 +20,7 @@ func NewMEMSReader(connection string) *MEMSReader {
 	log.Infof("created mems ecu reader")
 
 	r := &MEMSReader{}
-	r.port = connection
+	r.port = r.fixPort(connection)
 	return r
 }
 
@@ -246,4 +247,13 @@ func (r *MEMSReader) writeSerial(data []byte) {
 			log.Infof("sent %X to ecu", data)
 		}
 	}
+}
+
+func (r *MEMSReader) fixPort(port string) string {
+	if strings.Contains(port, "/dev/tty.") {
+		port = strings.Replace(port, "/tty.", "/cu.", 1)
+		log.Infof("fixed tty port to %s", port)
+	}
+
+	return port
 }
