@@ -62,7 +62,7 @@ func (ecu *ECUReaderInstance) getECUID() (string, error) {
 	log.Info("reading ecu id")
 
 	if data, err = ecu.EcuReader.SendAndReceive(MEMSInitECUID); err == nil {
-		ecuId = fmt.Sprintf("%X", data[1:12])
+		ecuId = fmt.Sprintf("%X", data[1:])
 		log.Infof("ecu id %X received", ecuId)
 	} else {
 		log.Warnf("error recieving ecu id %X (%s)", data, err)
@@ -79,7 +79,7 @@ func (ecu *ECUReaderInstance) getECUSerial() (string, error) {
 	log.Info("reading ecu serial")
 
 	if data, err = ecu.EcuReader.SendAndReceive(MEMSGetECUSerial); err == nil {
-		ecuSerial = fmt.Sprintf("%s%X", data[1:9], data[9:])
+		ecuSerial = fmt.Sprintf("%s", data[1:9])
 		log.Infof("ecu serial %s received", ecuSerial)
 	} else {
 		log.Warnf("error recieving ecu serial %X (%s)", data, err)
