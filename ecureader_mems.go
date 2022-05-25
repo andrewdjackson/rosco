@@ -97,7 +97,7 @@ func (r *MEMSReader) connectToSerialPort(port string) error {
 		if err = r.serialPort.SetMode(9600, 8, sers.N, 1, sers.NO_HANDSHAKE); err != nil {
 			log.Errorf("error configuring serial port (%s)", err)
 		} else {
-			if err = r.serialPort.SetReadParams(0, 2.0); err != nil {
+			if err = r.serialPort.SetReadParams(0, 0.1); err != nil {
 				log.Errorf("error setting serial port timeouts (%s)", err)
 			}
 		}
