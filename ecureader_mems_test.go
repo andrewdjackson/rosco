@@ -1,9 +1,12 @@
 package rosco
 
 import (
+	"encoding/json"
 	"github.com/corbym/gocrest/is"
 	"github.com/corbym/gocrest/then"
 	"github.com/mitchellh/go-homedir"
+	"io/ioutil"
+	"os"
 	"path/filepath"
 	"testing"
 )
@@ -12,14 +15,48 @@ import (
 // To Run these tests you need Memsulator running!
 //
 
+type TestFixtures struct {
+	Initialised    bool
+	UseVirtualPort bool   `json:"useVirtualPort"`
+	Port           string `json:"port"`
+}
+
+var testFixtures TestFixtures
+
+func getFixtures() {
+	var jsonFile *os.File
+	var err error
+
+	if !testFixtures.Initialised {
+		testFixtures.UseVirtualPort = true
+
+		if jsonFile, err = os.Open("testdata/fixtures.json"); err == nil {
+			// read our opened jsonFile as a byte array.
+			byteValue, _ := ioutil.ReadAll(jsonFile)
+
+			// we unmarshal our byteArray which contains our
+			// jsonFile's content into 'users' which we defined above
+			json.Unmarshal(byteValue, &testFixtures)
+		}
+
+		if testFixtures.UseVirtualPort {
+			testFixtures.Port = getVirtualPort()
+		}
+
+		testFixtures.Initialised = true
+		defer jsonFile.Close()
+	}
+}
+
 func getVirtualPort() string {
 	homefolder, _ := homedir.Dir()
 	return filepath.ToSlash(homefolder + "/ttyecu")
 }
 
 func Test_mems_Connect(t *testing.T) {
-	virtualPort := getVirtualPort()
-	r := NewMEMSReader(virtualPort)
+	getFixtures()
+
+	r := NewMEMSReader(testFixtures.Port)
 	connected, err := r.Connect()
 
 	then.AssertThat(t, err, is.Nil())
@@ -46,14 +83,15 @@ func Test_mems_Connect(t *testing.T) {
 }
 
 func Test_mems_connectToSerialPort(t *testing.T) {
-	virtualPort := getVirtualPort()
-	r := NewMEMSReader(virtualPort)
-	err := r.connectToSerialPort(virtualPort)
+	getFixtures()
+
+	r := NewMEMSReader(testFixtures.Port)
+	err := r.connectToSerialPort(testFixtures.Port)
 
 	then.AssertThat(t, err, is.Nil())
 	then.AssertThat(t, r.serialPort, is.Not(is.Nil()))
 
-	r = NewMEMSReader(virtualPort)
+	r = NewMEMSReader(testFixtures.Port)
 	err = r.connectToSerialPort(invalidPort)
 
 	then.AssertThat(t, err, is.Not(is.Nil()))
@@ -61,8 +99,9 @@ func Test_mems_connectToSerialPort(t *testing.T) {
 }
 
 func Test_mems_Disconnect(t *testing.T) {
-	virtualPort := getVirtualPort()
-	r := NewMEMSReader(virtualPort)
+	getFixtures()
+
+	r := NewMEMSReader(testFixtures.Port)
 	err := r.Disconnect()
 
 	then.AssertThat(t, err, is.Nil())
@@ -70,8 +109,9 @@ func Test_mems_Disconnect(t *testing.T) {
 }
 
 func Test_mems_SendAndReceive(t *testing.T) {
-	virtualPort := getVirtualPort()
-	r := NewMEMSReader(virtualPort)
+	getFixtures()
+
+	r := NewMEMSReader(testFixtures.Port)
 
 	connected, err := r.Connect()
 	then.AssertThat(t, err, is.Nil())
@@ -89,8 +129,9 @@ func Test_mems_SendAndReceive(t *testing.T) {
 }
 
 func Test_mems_commandMatchesResponse(t *testing.T) {
-	virtualPort := getVirtualPort()
-	r := NewMEMSReader(virtualPort)
+	getFixtures()
+
+	r := NewMEMSReader(testFixtures.Port)
 	err := r.commandMatchesResponse([]byte{0xca}, []byte{0xca})
 	then.AssertThat(t, err, is.Nil())
 

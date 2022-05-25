@@ -35,6 +35,12 @@ func NewECUReader(connection string) ECUReader {
 	isFile := strings.HasSuffix(connection, ".csv") || strings.HasSuffix(connection, ".fcr")
 	isLoopback := strings.Contains(connection, "loopback")
 
+	if !isLoopback {
+		// if the connection string contains ttyecu as the serial port then
+		// this is a loopback connection
+		isLoopback = strings.Contains(connection, "ttyecu")
+	}
+
 	if isLoopback {
 		r = NewLoopbackReader()
 	}

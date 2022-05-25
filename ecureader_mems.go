@@ -2,9 +2,8 @@ package rosco
 
 import (
 	"fmt"
+	"github.com/distributed/sers"
 	log "github.com/sirupsen/logrus"
-	"github.com/tarm/serial"
-	"time"
 )
 
 type MEMSReader struct {
@@ -12,7 +11,7 @@ type MEMSReader struct {
 	port       string
 	ecuId      string
 	ecuSerial  string
-	serialPort *serial.Port
+	serialPort sers.SerialPort
 }
 
 func NewMEMSReader(connection string) *MEMSReader {
@@ -73,10 +72,6 @@ func (r *MEMSReader) Disconnect() error {
 	// the serial library throws and ugly fatal if that happens
 	if r.serialPort != nil {
 		if r.connected {
-			if err = r.serialPort.Flush(); err != nil {
-				log.Warnf("error flushing serial serialPort (%+v)", err)
-			}
-
 			if err = r.serialPort.Close(); err != nil {
 				log.Warnf("error closing serial serialPort (%+v)", err)
 			} else {
@@ -94,11 +89,17 @@ func (r *MEMSReader) connectToSerialPort(port string) error {
 
 	log.Infof("attempting to open serial serialPort %s", port)
 
-	// connect to the ecu, timeout if we don't get data after a couple of seconds
-	c := &serial.Config{Name: port, Baud: 9600, ReadTimeout: time.Millisecond * 500}
-
-	if r.serialPort, err = serial.OpenPort(c); err != nil {
+	// connect to the ecu
+	if r.serialPort, err = sers.Open(port); err != nil {
 		log.Errorf("error opening serial port (%s)", err)
+	} else {
+		if err = r.serialPort.SetMode(9600, 8, sers.N, 1, sers.NO_HANDSHAKE); err != nil {
+			log.Errorf("error configuring serial port (%s)", err)
+		} else {
+			if err = r.serialPort.SetReadParams(1, 2); err != nil {
+				log.Errorf("error setting serial port timeouts (%s)", err)
+			}
+		}
 	}
 
 	return err
@@ -115,8 +116,6 @@ func (r *MEMSReader) connectToSerialPort(port string) error {
 // 6. Receive response D0 XX XX XX XX
 //
 func (r *MEMSReader) initialiseMemsECU() error {
-	_ = r.serialPort.Flush()
-
 	log.Infof("initialising ecu")
 
 	r.writeSerial(MEMSInitCommandA)

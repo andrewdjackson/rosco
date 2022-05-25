@@ -11,7 +11,8 @@ func Test_adjustments_applyAdjustments(t *testing.T) {
 	var connected bool
 	var value int
 
-	virtualPort := getVirtualPort()
+	getFixtures()
+	virtualPort := testFixtures.Port
 
 	r := NewECUReaderInstance()
 	connected, err = r.ConnectAndInitialiseECU(virtualPort)
@@ -40,7 +41,8 @@ func Test_adjustments_AllAdjusters(t *testing.T) {
 	var connected bool
 	var value int
 
-	virtualPort := getVirtualPort()
+	getFixtures()
+	virtualPort := testFixtures.Port
 
 	r := NewECUReaderInstance()
 	connected, err = r.ConnectAndInitialiseECU(virtualPort)

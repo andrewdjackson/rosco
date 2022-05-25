@@ -42,6 +42,33 @@ func Test_ecureader_NewECUReader(t *testing.T) {
 	then.AssertThat(t, reflect.TypeOf(r), is.EqualTo(reflect.TypeOf(&MEMSReader{})))
 }
 
+func Test_ecureader_MemsReader(t *testing.T) {
+	var connected bool
+	var err error
+
+	getFixtures()
+
+	r := NewECUReader(testFixtures.Port)
+	connected, err = r.Connect()
+
+	then.AssertThat(t, err, is.Nil())
+	then.AssertThat(t, connected, is.True())
+
+	r.Disconnect()
+}
+
+func Test_ecureader_LoopbackReader(t *testing.T) {
+	var connected bool
+	var err error
+
+	r := NewECUReader("/loopback")
+	connected, err = r.Connect()
+
+	then.AssertThat(t, err, is.Nil())
+	then.AssertThat(t, connected, is.True())
+	r.Disconnect()
+}
+
 func Test_ecureader_createResponseMap(t *testing.T) {
 	m := createResponseMap()
 	then.AssertThat(t, len(m), is.GreaterThan(0))

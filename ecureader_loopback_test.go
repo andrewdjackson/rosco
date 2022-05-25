@@ -13,6 +13,8 @@ func Test_loopback_Connect(t *testing.T) {
 	then.AssertThat(t, err, is.Nil())
 	then.AssertThat(t, r.connected, is.True())
 	then.AssertThat(t, connected, is.True())
+
+	_ = r.Disconnect()
 }
 
 func Test_loopback_Disconnect(t *testing.T) {
@@ -25,21 +27,18 @@ func Test_loopback_Disconnect(t *testing.T) {
 
 func Test_loopback_SendAndReceive(t *testing.T) {
 	r := NewLoopbackReader()
-	_, err := r.Connect()
 
-	response, err := r.SendAndReceive([]byte{0x0A})
+	connected, err := r.Connect()
+	then.AssertThat(t, err, is.Nil())
+	then.AssertThat(t, connected, is.True())
 
 	// expect echo of command
+	response, err := r.SendAndReceive([]byte{0x0A})
 	then.AssertThat(t, err, is.Nil())
 	then.AssertThat(t, response, is.EqualTo([]byte{0x0A}))
 
 	// expect id string response
 	response, err = r.SendAndReceive([]byte{0xD0})
 	then.AssertThat(t, err, is.Nil())
-	then.AssertThat(t, response, is.EqualTo([]byte{0xD0, 0x99, 0x00, 0x03, 0x03}))
-
-	// invalid command, generic response
-	response, err = r.SendAndReceive([]byte{0x20})
-	then.AssertThat(t, err, is.Nil())
-	then.AssertThat(t, response, is.EqualTo([]byte{0x20, 0x00}))
+	then.AssertThat(t, response, is.EqualTo([]byte{0xD0, 0x99, 0x00, 0x02, 0x03}))
 }

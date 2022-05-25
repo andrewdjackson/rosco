@@ -10,7 +10,8 @@ func Test_actuators_activateActuator(t *testing.T) {
 	var err error
 	var connected bool
 
-	virtualPort := getVirtualPort()
+	getFixtures()
+	virtualPort := testFixtures.Port
 
 	r := NewECUReaderInstance()
 	connected, err = r.ConnectAndInitialiseECU(virtualPort)
@@ -30,7 +31,8 @@ func Test_adjustments_AllActuators(t *testing.T) {
 	var err error
 	var connected bool
 
-	virtualPort := getVirtualPort()
+	getFixtures()
+	virtualPort := testFixtures.Port
 
 	r := NewECUReaderInstance()
 	connected, err = r.ConnectAndInitialiseECU(virtualPort)

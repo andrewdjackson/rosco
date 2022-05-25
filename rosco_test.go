@@ -8,7 +8,9 @@ import (
 )
 
 func Test_rosco_ConnectAndInitialiseECU(t *testing.T) {
-	virtualPort := getVirtualPort()
+	getFixtures()
+	virtualPort := testFixtures.Port
+
 	rosco_ConnectAndInitialiseECU(t, virtualPort)
 
 	rosco_ConnectAndInitialiseECU(t, loopbackPort)
@@ -39,7 +41,9 @@ func rosco_ConnectAndInitialiseECU(t *testing.T, port string) {
 }
 
 func Test_rosco_Disconnect(t *testing.T) {
-	virtualPort := getVirtualPort()
+	getFixtures()
+	virtualPort := testFixtures.Port
+
 	r := NewECUReaderInstance()
 	connected, err := r.ConnectAndInitialiseECU(virtualPort)
 
@@ -53,7 +57,9 @@ func Test_rosco_Disconnect(t *testing.T) {
 }
 
 func Test_rosco_connectToECU(t *testing.T) {
-	virtualPort := getVirtualPort()
+	getFixtures()
+	virtualPort := testFixtures.Port
+
 	r := NewECUReaderInstance()
 	r.EcuReader = NewECUReader(virtualPort)
 	connected, err := r.connectToECU()
@@ -71,7 +77,9 @@ func Test_rosco_ResetDiagnostics(t *testing.T) {
 }
 
 func Test_rosco_GetDataframes(t *testing.T) {
-	virtualPort := getVirtualPort()
+	getFixtures()
+	virtualPort := testFixtures.Port
+
 	r := NewECUReaderInstance()
 	r.EcuReader = NewECUReader(virtualPort)
 	connected, err := r.connectToECU()
@@ -87,7 +95,9 @@ func Test_rosco_GetDataframes(t *testing.T) {
 }
 
 func Test_rosco_SustainedGetDataframes(t *testing.T) {
-	virtualPort := getVirtualPort()
+	getFixtures()
+	virtualPort := testFixtures.Port
+
 	r := NewECUReaderInstance()
 	r.EcuReader = NewECUReader(virtualPort)
 	connected, err := r.connectToECU()
