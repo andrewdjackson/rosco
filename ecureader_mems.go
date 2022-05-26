@@ -11,8 +11,6 @@ import (
 type MEMSReader struct {
 	connected  bool
 	port       string
-	ecuId      string
-	ecuSerial  string
 	serialPort sers.SerialPort
 }
 
@@ -157,7 +155,6 @@ func (r *MEMSReader) initialiseMemsECU() error {
 				return err
 			} else {
 				log.Infof("mems initialisation ECU ID %X successful", response)
-				r.ecuId = fmt.Sprintf("%X", response[1:])
 			}
 		}
 	}

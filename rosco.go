@@ -43,6 +43,7 @@ func (ecu *ECUReaderInstance) ConnectAndInitialiseECU(port string) (bool, error)
 			// get the ecu serial number and iac position
 			ecu.Status.ECUSerial, err = ecu.getECUSerial()
 			ecu.Status.IACPosition, err = ecu.GetIACPosition()
+			ecu.Status.ECUID, err = ecu.getECUID()
 
 			// assign the responder
 			if reflect.TypeOf(ecu.EcuReader) == reflect.TypeOf(&ScenarioReader{}) {
