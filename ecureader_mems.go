@@ -31,12 +31,11 @@ func (r *MEMSReader) Connect() (bool, error) {
 		return false, err
 	}
 
-	/*
-		if err = r.wakeUp(); err != nil {
-			// wakeup failure if we cannot open the serialPort
-			return false, err
-		}
-	*/
+	if err := r.wakeUp(); err != nil {
+		// wakeup failure if we cannot open the serialPort
+		return false, err
+	}
+
 	r.flushSerialPort()
 
 	if err := r.initialiseMemsECU(); err != nil {
@@ -196,7 +195,7 @@ func (r *MEMSReader) readSerial(command []byte) ([]byte, error) {
 
 			if bytesRead == 0 {
 				// wait for data and retry
-				time.Sleep(25 * time.Millisecond)
+				time.Sleep(50 * time.Millisecond)
 				retry++
 
 				if retry >= 5 {

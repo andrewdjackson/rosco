@@ -54,6 +54,9 @@ func Test_ecureader_MemsReader(t *testing.T) {
 	then.AssertThat(t, err, is.Nil())
 	then.AssertThat(t, connected, is.True())
 
+	_, _ = r.SendAndReceive(MEMSReqData7D)
+	_, _ = r.SendAndReceive(MEMSReqData80)
+
 	r.Disconnect()
 }
 
