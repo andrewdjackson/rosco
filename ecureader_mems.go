@@ -23,6 +23,8 @@ func NewMEMSReader(connection string) *MEMSReader {
 }
 
 func (r *MEMSReader) Connect() (bool, error) {
+	var err error
+
 	r.connected = false
 
 	if err := r.connectToSerialPort(r.port); err != nil {
@@ -30,6 +32,13 @@ func (r *MEMSReader) Connect() (bool, error) {
 		// connect failure if we cannot open the serialPort
 		return false, err
 	}
+
+	if err = r.wakeUp(); err != nil {
+		// wakeup failure if we cannot open the serialPort
+		return false, err
+	}
+
+	r.flushSerialPort()
 
 	if err := r.initialiseMemsECU(); err != nil {
 		log.Errorf("error initialising ecu (%s) status : (%+v)", r.port, err)
@@ -243,6 +252,69 @@ func (r *MEMSReader) writeSerial(data []byte) {
 
 		if bytesWritten > 0 {
 			log.Infof("sent %X to ecu", data)
+		}
+	}
+}
+
+func (r *MEMSReader) wakeUp() error {
+	var err error
+
+	log.Infof("performing serial port 5 baud wake-up")
+	// clear the line
+	if err = r.serialPort.SetBreak(false); err == nil {
+		log.Debugf("setting up ecu wake-up")
+		time.Sleep(time.Millisecond * 2000)
+		start := time.Now()
+
+		log.Debugf("sending ecu wake-up data")
+		// start bit
+		_ = r.serialPort.SetBreak(true)
+		r.sleepUntil(start, 200)
+
+		// send the byte
+		ecuAddress := 0x16
+		for i := 0; i < 8; i++ {
+			bit := (ecuAddress >> i) & 1
+
+			if bit > 0 {
+				_ = r.serialPort.SetBreak(false)
+			} else {
+				_ = r.serialPort.SetBreak(true)
+			}
+
+			r.sleepUntil(start, 200+((i+1)*200))
+
+		}
+
+		// stop bit
+		log.Debugf("clearing down ecu wake-up")
+		_ = r.serialPort.SetBreak(false)
+		r.sleepUntil(start, 2000)
+	}
+
+	log.Infof("completed serial port 5 baud wake-up")
+	return err
+}
+
+func (r *MEMSReader) sleepUntil(start time.Time, plus int) {
+	target := start.Add(time.Duration(plus) * time.Millisecond)
+	sleepMs := target.Sub(time.Now()).Milliseconds()
+	if sleepMs < 0 {
+		return
+	}
+	time.Sleep(time.Duration(sleepMs) * time.Millisecond)
+}
+
+func (r *MEMSReader) flushSerialPort() {
+	size := 200
+	b := make([]byte, size)
+
+	for {
+		if bytesRead, err := r.serialPort.Read(b); err == nil {
+			log.Infof("flushing serial port, read %d bytes", bytesRead)
+		} else {
+			log.Infof("serial port flushed")
+			break
 		}
 	}
 }
