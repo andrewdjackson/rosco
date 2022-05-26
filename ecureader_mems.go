@@ -23,8 +23,6 @@ func NewMEMSReader(connection string) *MEMSReader {
 }
 
 func (r *MEMSReader) Connect() (bool, error) {
-	var err error
-
 	r.connected = false
 
 	if err := r.connectToSerialPort(r.port); err != nil {
