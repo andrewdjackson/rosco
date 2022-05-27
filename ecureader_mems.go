@@ -261,7 +261,7 @@ func (r *MEMSReader) wakeUp() error {
 	// clear the line
 	if err = r.serialPort.SetBreak(false); err == nil {
 		log.Debugf("setting up ecu wake-up")
-		time.Sleep(time.Millisecond * 2000)
+		time.Sleep(time.Millisecond * 200)
 		start := time.Now()
 
 		log.Debugf("sending ecu wake-up data")
@@ -287,7 +287,7 @@ func (r *MEMSReader) wakeUp() error {
 		// stop bit
 		log.Debugf("clearing down ecu wake-up")
 		_ = r.serialPort.SetBreak(false)
-		r.sleepUntil(start, 2000)
+		r.sleepUntil(start, 200)
 	}
 
 	log.Infof("completed serial port 5 baud wake-up")
@@ -325,3 +325,35 @@ func (r *MEMSReader) fixPort(port string) string {
 
 	return port
 }
+
+/*
+   async waitUntil(timestampMs, pause) {
+     const start = performance.now();
+     while (performance.now() < timestampMs) {
+       await new Promise((resolve) => setTimeout(resolve, 1));
+       let delta = performance.now() - start;
+       if (delta < 10) {
+         while (performance.now() < timestampMs) {}
+         break;
+       }
+     }
+     return timestampMs + pause;
+   },
+   async assertSignalAndWait(before, pause, brk) {
+     await this.ser.port.setSignals({ break: brk });
+     return await this.waitUntil(before, pause);
+   },
+   async slowInit(ecuAddress) {
+     let pause = 200;
+     this.ser.stage = 2;
+     let before = await this.assertSignalAndWait(performance.now(), pause, false);
+     before = await this.assertSignalAndWait(before, pause, true);
+     this.ser.stage += 0.3;
+     for (var i = 0; i < 8; i++) {
+       let bit = (ecuAddress >> i) & 1;
+       before = await this.assertSignalAndWait(before, pause, !bit);
+     }
+     this.ser.stage += 0.3;
+     await this.assertSignalAndWait(before, pause, false);
+   },
+*/
