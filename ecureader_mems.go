@@ -3,21 +3,34 @@ package rosco
 import (
 	"fmt"
 	"github.com/distributed/sers"
+	"github.com/joho/godotenv"
 	log "github.com/sirupsen/logrus"
+	"os"
+	"strconv"
 	"strings"
 	"time"
 )
+
+type MEMSReaderOperationalConfig struct {
+	WakeUp              bool
+	SerialWaitTime      int64
+	SerialMinReadBuffer int64
+	SerialReadTimeout   float64
+	WakeUpBaudDelay     int64
+}
 
 type MEMSReader struct {
 	connected  bool
 	port       string
 	serialPort sers.SerialPort
+	config     MEMSReaderOperationalConfig
 }
 
 func NewMEMSReader(connection string) *MEMSReader {
 	log.Infof("created mems ecu reader")
 
 	r := &MEMSReader{}
+	r.loadEnvironment()
 	r.port = r.fixPort(connection)
 	return r
 }
@@ -31,9 +44,11 @@ func (r *MEMSReader) Connect() (bool, error) {
 		return false, err
 	}
 
-	if err := r.wakeUp(); err != nil {
-		// wakeup failure if we cannot open the serialPort
-		return false, err
+	if r.config.WakeUp {
+		if err := r.wakeUp(); err != nil {
+			// wakeup failure if we cannot open the serialPort
+			return false, err
+		}
 	}
 
 	r.flushSerialPort()
@@ -79,6 +94,8 @@ func (r *MEMSReader) Disconnect() error {
 	// the serial library throws and ugly fatal if that happens
 	if r.serialPort != nil {
 		if r.connected {
+			r.flushSerialPort()
+
 			if err = r.serialPort.Close(); err != nil {
 				log.Warnf("error closing serial serialPort (%+v)", err)
 			} else {
@@ -103,7 +120,7 @@ func (r *MEMSReader) connectToSerialPort(port string) error {
 		if err = r.serialPort.SetMode(9600, 8, sers.N, 1, sers.NO_HANDSHAKE); err != nil {
 			log.Errorf("error configuring serial port (%s)", err)
 		} else {
-			if err = r.serialPort.SetReadParams(0, 0.1); err != nil {
+			if err = r.serialPort.SetReadParams(int(r.config.SerialMinReadBuffer), r.config.SerialReadTimeout); err != nil {
 				log.Errorf("error setting serial port timeouts (%s)", err)
 			}
 		}
@@ -188,6 +205,8 @@ func (r *MEMSReader) readSerial(command []byte) ([]byte, error) {
 	if r.serialPort != nil {
 		// read all the expected bytes before returning the receivedBytes
 		retry = 0
+		// wait for data
+		r.serialWait()
 
 		for count := 0; count < size; {
 			// wait for a response from MEMS
@@ -195,7 +214,7 @@ func (r *MEMSReader) readSerial(command []byte) ([]byte, error) {
 
 			if bytesRead == 0 {
 				// wait for data and retry
-				time.Sleep(50 * time.Millisecond)
+				r.serialWait()
 				retry++
 
 				if retry >= 5 {
@@ -261,13 +280,13 @@ func (r *MEMSReader) wakeUp() error {
 	// clear the line
 	if err = r.serialPort.SetBreak(false); err == nil {
 		log.Debugf("setting up ecu wake-up")
-		time.Sleep(time.Millisecond * 200)
+		time.Sleep(time.Duration(r.config.WakeUpBaudDelay) * time.Millisecond)
 		start := time.Now()
 
 		log.Debugf("sending ecu wake-up data")
 		// start bit
 		_ = r.serialPort.SetBreak(true)
-		r.sleepUntil(start, 200)
+		r.sleepUntil(start, r.config.WakeUpBaudDelay)
 
 		// send the byte
 		ecuAddress := 0x16
@@ -280,21 +299,27 @@ func (r *MEMSReader) wakeUp() error {
 				_ = r.serialPort.SetBreak(true)
 			}
 
-			r.sleepUntil(start, 200+((i+1)*200))
+			r.sleepUntil(start, r.config.WakeUpBaudDelay+(int64(i+1)*r.config.WakeUpBaudDelay))
 
 		}
 
 		// stop bit
 		log.Debugf("clearing down ecu wake-up")
 		_ = r.serialPort.SetBreak(false)
-		r.sleepUntil(start, 200)
+		r.sleepUntil(start, r.config.WakeUpBaudDelay)
 	}
 
 	log.Infof("completed serial port 5 baud wake-up")
 	return err
 }
 
-func (r *MEMSReader) sleepUntil(start time.Time, plus int) {
+func (r *MEMSReader) serialWait() {
+	if r.config.SerialWaitTime > 0 {
+		time.Sleep(time.Duration(r.config.SerialWaitTime) * time.Millisecond)
+	}
+}
+
+func (r *MEMSReader) sleepUntil(start time.Time, plus int64) {
 	target := start.Add(time.Duration(plus) * time.Millisecond)
 	sleepMs := target.Sub(time.Now()).Milliseconds()
 	if sleepMs < 0 {
@@ -304,6 +329,8 @@ func (r *MEMSReader) sleepUntil(start time.Time, plus int) {
 }
 
 func (r *MEMSReader) flushSerialPort() {
+	r.serialWait()
+
 	size := 200
 	b := make([]byte, size)
 
@@ -324,6 +351,52 @@ func (r *MEMSReader) fixPort(port string) string {
 	}
 
 	return port
+}
+
+func (r *MEMSReader) loadEnvironment() {
+	var err error
+
+	r.config = MEMSReaderOperationalConfig{
+		WakeUp:              false,
+		WakeUpBaudDelay:     200,
+		SerialWaitTime:      75,
+		SerialMinReadBuffer: 0,
+		SerialReadTimeout:   0.1,
+	}
+
+	if err = godotenv.Load("rosco.env"); err == nil {
+		log.Infof("using environment variables")
+
+		if value := os.Getenv("WAKEUP"); value != "" {
+			if r.config.WakeUp, err = strconv.ParseBool(value); err == nil {
+				log.Infof("ecu wakeup %t", r.config.WakeUp)
+			}
+		}
+
+		if value := os.Getenv("WAKEUP_BAUD_DELAY"); value != "" {
+			if r.config.WakeUpBaudDelay, err = strconv.ParseInt(value, 10, 8); err == nil {
+				log.Infof("ecu wakeup baud delay %dms", r.config.WakeUpBaudDelay)
+			}
+		}
+
+		if value := os.Getenv("SERIAL_WAIT_TIME"); value != "" {
+			if r.config.SerialWaitTime, err = strconv.ParseInt(value, 10, 8); err == nil {
+				log.Infof("ecu serial wait time %dms", r.config.SerialWaitTime)
+			}
+		}
+
+		if value := os.Getenv("SERIAL_MIN_READ_BUFFER"); value != "" {
+			if r.config.SerialMinReadBuffer, err = strconv.ParseInt(value, 10, 8); err == nil {
+				log.Infof("ecu serial min read buffer %d", r.config.SerialMinReadBuffer)
+			}
+		}
+
+		if value := os.Getenv("SERIAL_READ_TIMEOUT"); value != "" {
+			if r.config.SerialReadTimeout, err = strconv.ParseFloat(value, 8); err == nil {
+				log.Infof("ecu serial read timeout %f", r.config.SerialReadTimeout)
+			}
+		}
+	}
 }
 
 /*
