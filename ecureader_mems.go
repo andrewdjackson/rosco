@@ -7,7 +7,6 @@ import (
 	log "github.com/sirupsen/logrus"
 	"os"
 	"strconv"
-	"strings"
 	"time"
 )
 
@@ -31,7 +30,7 @@ func NewMEMSReader(connection string) *MEMSReader {
 
 	r := &MEMSReader{}
 	r.loadEnvironment()
-	r.port = r.fixPort(connection)
+	r.port = fixPort(connection)
 	return r
 }
 
@@ -342,15 +341,6 @@ func (r *MEMSReader) flushSerialPort() {
 			break
 		}
 	}
-}
-
-func (r *MEMSReader) fixPort(port string) string {
-	if strings.Contains(port, "/dev/tty.") {
-		port = strings.Replace(port, "/tty.", "/cu.", 1)
-		log.Infof("fixed tty port to %s", port)
-	}
-
-	return port
 }
 
 func (r *MEMSReader) loadEnvironment() {

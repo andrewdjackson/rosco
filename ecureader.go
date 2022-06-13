@@ -5,6 +5,7 @@ import (
 	"fmt"
 	log "github.com/sirupsen/logrus"
 	"math"
+	"runtime"
 	"strings"
 )
 
@@ -26,35 +27,37 @@ var responseMap = make(map[string][]byte)
 
 // ECU Reader factory
 func NewECUReader(connection string) ECUReader {
-	var r ECUReader
-
 	// prepare the response map for synthetic ECUs
 	responseMap = createResponseMap()
 
 	// determine the type of reader from the connection string
-	isFile := strings.HasSuffix(connection, ".csv") || strings.HasSuffix(connection, ".fcr")
-	isLoopback := strings.Contains(connection, "loopback")
+	isFile := useFileReader(connection)
+	isMemsReader := useMemsReader(connection)
+	isLoopback := useLoopbackReader(connection)
 
-	if !isLoopback {
-		// if the connection string contains ttyecu as the serial port then
-		// this is a loopback connection
-		isLoopback = strings.Contains(connection, "ttyecu")
+	// clean up the port, remove prefixes and convert /tty. to /cu.
+	connection = fixPort(connection)
+
+	if isFile {
+		return NewScenarioReader(connection)
 	}
 
 	if isLoopback {
-		r = NewLoopbackReader()
+		return NewLoopbackReader(connection)
 	}
 
-	if isFile {
-		r = NewScenarioReader(connection)
+	if isMemsReader {
+		return NewMEMSReader(connection)
 	}
 
-	// default to a Mems Reader
-	if r == nil {
-		r = NewMEMSReader(connection)
-	}
+	// no overrides, default MemsReader
+	// if the os is darwin then override to use the loopback reader as it is more reliable
 
-	return r
+	if runtime.GOOS == "darwin" {
+		return NewLoopbackReader(connection)
+	} else {
+		return NewMEMSReader(connection)
+	}
 }
 
 // getResponseSize returns the expected number of bytes for a given command
@@ -100,6 +103,46 @@ func generateECUResponse(command string) []byte {
 	log.Infof("generated a response %X for command %X", response, command)
 
 	return response
+}
+
+func useFileReader(connection string) bool {
+	validReader := strings.HasSuffix(connection, ".csv") || strings.HasSuffix(connection, ".fcr")
+
+	// override if the connection prefix explicitly specifies reader
+	override := strings.HasPrefix(connection, "file:")
+
+	return validReader || override
+}
+
+func useMemsReader(connection string) bool {
+	// override if the connection prefix explicitly specifies reader
+	return strings.HasPrefix(connection, "mems:")
+}
+
+func useLoopbackReader(connection string) bool {
+	// if the connection string contains ttyecu as the serial port then
+	// this is a loopback connection
+	validReader := strings.Contains(connection, "ttyecu")
+
+	// override if the connection prefix explicitly specifies reader
+	override := strings.HasPrefix(connection, "loopback:")
+
+	return validReader || override
+}
+
+func fixPort(port string) string {
+	// remove the prefixes
+	port = strings.Replace(port, "mems:", "", 1)
+	port = strings.Replace(port, "loopback:", "", 1)
+	port = strings.Replace(port, "file:", "", 1)
+
+	if strings.Contains(port, "/dev/tty.") {
+		// convert tty to cu
+		port = strings.Replace(port, "/tty.", "/cu.", 1)
+		log.Infof("fixed tty port to %s", port)
+	}
+
+	return port
 }
 
 func createResponseMap() map[string][]byte {

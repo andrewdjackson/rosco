@@ -17,13 +17,18 @@ type LoopbackReader struct {
 	serialPort *serial.Port
 }
 
-func NewLoopbackReader() *LoopbackReader {
+func NewLoopbackReader(connection string) *LoopbackReader {
 	log.Infof("created loopback ecu reader")
 
 	r := &LoopbackReader{}
-	r.port = r.getVirtualPort()
-	r.ecuId = "99XXXXXX"
-	r.ecuSerial = "LOOPBACK"
+
+	if connection == "" {
+		r.port = r.getVirtualPort()
+		r.ecuId = "99XXXXXX"
+		r.ecuSerial = "LOOPBACK"
+	} else {
+		r.port = fixPort(connection)
+	}
 
 	return r
 }

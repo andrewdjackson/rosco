@@ -7,7 +7,7 @@ import (
 )
 
 func Test_loopback_Connect(t *testing.T) {
-	r := NewLoopbackReader()
+	r := NewLoopbackReader("loopback:")
 	connected, err := r.Connect()
 
 	then.AssertThat(t, err, is.Nil())
@@ -18,7 +18,7 @@ func Test_loopback_Connect(t *testing.T) {
 }
 
 func Test_loopback_Disconnect(t *testing.T) {
-	r := NewLoopbackReader()
+	r := NewLoopbackReader("ttyecu")
 	err := r.Disconnect()
 
 	then.AssertThat(t, err, is.Nil())
@@ -26,7 +26,7 @@ func Test_loopback_Disconnect(t *testing.T) {
 }
 
 func Test_loopback_SendAndReceive(t *testing.T) {
-	r := NewLoopbackReader()
+	r := NewLoopbackReader("loopback")
 
 	connected, err := r.Connect()
 	then.AssertThat(t, err, is.Nil())

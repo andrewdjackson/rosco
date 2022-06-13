@@ -4,6 +4,7 @@ import (
 	"github.com/corbym/gocrest/is"
 	"github.com/corbym/gocrest/then"
 	"reflect"
+	"runtime"
 	"testing"
 )
 
@@ -14,11 +15,11 @@ const (
 )
 
 func Test_ecureader_NewECUReader(t *testing.T) {
-	r := NewECUReader("loopback")
+	r := NewECUReader("loopback:")
 	then.AssertThat(t, reflect.TypeOf(r), is.EqualTo(reflect.TypeOf(&LoopbackReader{})))
 
-	r = NewECUReader("/loopback")
-	then.AssertThat(t, reflect.TypeOf(r), is.EqualTo(reflect.TypeOf(&LoopbackReader{})))
+	r = NewECUReader("mems:/dev/tty.serial")
+	then.AssertThat(t, reflect.TypeOf(r), is.EqualTo(reflect.TypeOf(&MEMSReader{})))
 
 	// test the FCR and CSV file extensions
 	r = NewECUReader("filename.csv")
@@ -29,17 +30,25 @@ func Test_ecureader_NewECUReader(t *testing.T) {
 
 	// ensure only the extension determines the reader is a file reader
 	r = NewECUReader("filenamefcr.file")
-	then.AssertThat(t, reflect.TypeOf(r), is.EqualTo(reflect.TypeOf(&MEMSReader{})))
+	then.AssertThat(t, reflect.TypeOf(r), is.Not(is.EqualTo(reflect.TypeOf(&ScenarioReader{}))))
 
 	r = NewECUReader("filenamecsv.file")
-	then.AssertThat(t, reflect.TypeOf(r), is.EqualTo(reflect.TypeOf(&MEMSReader{})))
+	then.AssertThat(t, reflect.TypeOf(r), is.Not(is.EqualTo(reflect.TypeOf(&ScenarioReader{}))))
 
 	// MEMSReader for serial ports
 	r = NewECUReader("COM5")
-	then.AssertThat(t, reflect.TypeOf(r), is.EqualTo(reflect.TypeOf(&MEMSReader{})))
+	if runtime.GOOS == "darwin" {
+		then.AssertThat(t, reflect.TypeOf(r), is.EqualTo(reflect.TypeOf(&LoopbackReader{})))
+	} else {
+		then.AssertThat(t, reflect.TypeOf(r), is.EqualTo(reflect.TypeOf(&MEMSReader{})))
+	}
 
 	r = NewECUReader("/dev/tty.Serial")
-	then.AssertThat(t, reflect.TypeOf(r), is.EqualTo(reflect.TypeOf(&MEMSReader{})))
+	if runtime.GOOS == "darwin" {
+		then.AssertThat(t, reflect.TypeOf(r), is.EqualTo(reflect.TypeOf(&LoopbackReader{})))
+	} else {
+		then.AssertThat(t, reflect.TypeOf(r), is.EqualTo(reflect.TypeOf(&MEMSReader{})))
+	}
 }
 
 func Test_ecureader_MemsReader(t *testing.T) {
