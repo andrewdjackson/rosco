@@ -69,7 +69,7 @@ const (
 	highestLambdaValue                 = 900
 	highestJackCount                   = 50
 	lambdaOscillationStandardDeviation = 100
-	highestIdleSpeedDeviation          = 150
+	highestIdleSpeedDeviation          = 100
 )
 
 func NewDataframeAnalysis(datasetLength int) *DataframeAnalysis {

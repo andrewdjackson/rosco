@@ -166,7 +166,9 @@ func (df *DataframeAnalysis) isThermostatFaulty(data MemsData) bool {
 	}
 }
 
-// a mean value of more than 100 RPM indicates that the ECU is not in control of the idle speed.
+// idle speed deviation indicates how far away it is from idle target
+// idle base position indicates the target for IAC position
+// a mean value of more than 100 indicates that the ECU is not in control of the idle speed.
 // This indicates a possible fault condition.
 // need a full dataset for this analysis
 func (df *DataframeAnalysis) isIdleSpeedFaulty(data MemsData) bool {
