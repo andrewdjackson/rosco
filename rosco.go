@@ -104,6 +104,7 @@ func (ecu *ECUReaderInstance) GetDataframes() (MemsData, error) {
 				df = ecu.createMemsDataframe(df80, df7d)
 				// include the raw df converted into string format
 				df.Dataframe80 = hex.EncodeToString(d80)
+
 				if len(df.Dataframe80) != 58 {
 					log.Warnf("dataframe 0x80 length exception, expected 29 (%s)", df.Dataframe80)
 				}
@@ -113,9 +114,7 @@ func (ecu *ECUReaderInstance) GetDataframes() (MemsData, error) {
 					log.Warnf("dataframe 0x7D length exception, expected 33 (%s)", df.Dataframe7d)
 				}
 
-				ecu.Diagnostics.Analyse(df)
-				df.Analytics = ecu.Diagnostics.Analysis
-
+				df.Analytics = ecu.analyseMemsData(df)
 				log.Infof("generated ecu df from dataframe (%+v)", df)
 			}
 		}
@@ -125,6 +124,11 @@ func (ecu *ECUReaderInstance) GetDataframes() (MemsData, error) {
 
 	return df, err
 
+}
+
+func (ecu *ECUReaderInstance) analyseMemsData(df MemsData) AnalysisReport {
+	ecu.Diagnostics.Analyse(df)
+	return ecu.Diagnostics.Analysis
 }
 
 func (ecu *ECUReaderInstance) connectToECU() (bool, error) {
@@ -240,9 +244,17 @@ func (ecu *ECUReaderInstance) readRawDataFrames() ([]byte, []byte, error) {
 		log.Errorf("%s", dferr)
 	}
 
+	// MEMS 1.3 doesn't support 7D command, so assuming we received the 80 dataframe
+	// correctly, we'll supply default data
 	if dataframe7d, err = ecu.EcuReader.SendAndReceive(MEMSReqData7D); err != nil {
-		dferr = fmt.Errorf("error recieving dataframe 0x7d (%s)", err)
-		log.Errorf("%s", dferr)
+		if dferr != nil {
+			// 80 failed, so assume the worst
+			dferr = fmt.Errorf("error recieving dataframe 0x7d (%s)", err)
+			log.Errorf("%s", dferr)
+		} else {
+			log.Errorf("error recieving dataframe 0x7d with valid 0x80, assuming MEMS 1.3")
+			dataframe7d = []byte{0x7d, 0x20, 0x10, 0x19, 0xff, 0x92, 0x00, 0x57, 0xff, 0xff, 0x01, 0x00, 0x7a, 0x64, 0x00, 0xff, 0x64, 0xff, 0xff, 0x30, 0x80, 0x7b, 0x69, 0xff, 0x19, 0x40, 0x1e, 0xc0, 0x26, 0x40, 0x34, 0xc0, 0x08}
+		}
 	}
 
 	return dataframe80, dataframe7d, dferr
