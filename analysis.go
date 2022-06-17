@@ -46,7 +46,7 @@ const (
 	secondsPerDegree                   = 11
 	minimumDatasetSize                 = 1
 	defaultIdleThrottleAngle           = 14
-	defaultIdleThrottlePotSensor       = 0.85
+	throttleAngleFactor                = 15
 	lowestBatteryVoltage               = 13
 	highestIdleMAPValue                = 45
 	highestIdleCoilTime                = 4
@@ -86,6 +86,10 @@ func (df *DataframeAnalysis) Analyse(data MemsData) {
 	if df.isValid(data) {
 		// is the ECU a MEMS 1.3
 		df.isMems13 = df.isMems13ECU(data)
+		if df.isMems13 {
+			// calculate throttle angle for MEMS 1.3
+			data.ThrottleAngle = df.getThrottleAngle(data)
+		}
 
 		// analyse the current operational state
 		df.analyseOperationalStatus(data)
@@ -127,6 +131,7 @@ func (df *DataframeAnalysis) isValid(data MemsData) bool {
 		df.isCoolantTempValid(data) &&
 		df.isIntakeAirTempValid(data) &&
 		df.isIdleBasePositionValid(data) &&
+		df.isMAPValid(data) &&
 		df.isDTC5Valid(data)
 }
 
@@ -178,4 +183,8 @@ func (df *DataframeAnalysis) isDTC5Valid(data MemsData) bool {
 	// the df, for example jack count leaps to 125
 	// since this behaviour is not yet understood, we'll remove these entries
 	return data.DTC5 == expectedLowDTCValue || data.DTC5 == expectedHighDTC5Value && data.JackCount <= highestJackCount
+}
+
+func (df *DataframeAnalysis) isMAPValid(data MemsData) bool {
+	return data.ManifoldAbsolutePressure > 0
 }

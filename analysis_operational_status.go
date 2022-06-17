@@ -34,11 +34,8 @@ func (df *DataframeAnalysis) isEngineIdle(data MemsData) bool {
 	// engine is deemed to be at idle if the engine is running
 	// and the angle of the throttle pot indicates the throttle is off
 	// later MEMS ECUs use the throttle pot to determine the idle position
-	return df.isEngineRunning(data) &&
-		data.ThrottlePotSensor <= defaultIdleThrottlePotSensor
 
-	// throttle angle is not available on MEMS1.3, so swapped to using the pot value
-	// return df.isEngineRunning(data) && data.ThrottleAngle <= defaultIdleThrottleAngle
+	return df.isEngineRunning(data) && data.ThrottleAngle <= defaultIdleThrottleAngle
 }
 
 func (df *DataframeAnalysis) isLoopClosed(data MemsData) bool {
@@ -47,6 +44,9 @@ func (df *DataframeAnalysis) isLoopClosed(data MemsData) bool {
 
 func (df *DataframeAnalysis) isThrottleActive(data MemsData) bool {
 	// throttle angle is not available on MEMS1.3, so swapped to using the pot value
-	// return data.ThrottleAngle > defaultIdleThrottleAngle || data.EngineRPM > highestIdleRPM
-	return data.ThrottlePotSensor > defaultIdleThrottlePotSensor || data.EngineRPM > highestIdleRPM
+	return data.ThrottleAngle > defaultIdleThrottleAngle || data.EngineRPM > highestIdleRPM
+}
+
+func (df *DataframeAnalysis) getThrottleAngle(data MemsData) int {
+	return data.EngineRPM / throttleAngleFactor
 }

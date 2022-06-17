@@ -476,15 +476,16 @@ func Test_isLambdaFaulty(t *testing.T) {
 	d.Analyse(data)
 
 	data = MemsData{
-		Time:             "12:01:31.000",
-		EngineRPM:        engineRunning,
-		LambdaVoltage:    goodLambdaValue + 50,
-		CoolantTemp:      warmEngineTemperature,
-		IntakeAirTemp:    goodIntakeTemperature,
-		IdleBasePosition: goodIdleBasePosition,
-		DTC5:             expectedDTC5,
-		JackCount:        highestJackCount - 1,
-		BatteryVoltage:   goodBattery,
+		Time:                     "12:01:31.000",
+		EngineRPM:                engineRunning,
+		LambdaVoltage:            goodLambdaValue + 50,
+		CoolantTemp:              warmEngineTemperature,
+		IntakeAirTemp:            goodIntakeTemperature,
+		IdleBasePosition:         goodIdleBasePosition,
+		DTC5:                     expectedDTC5,
+		JackCount:                highestJackCount - 1,
+		BatteryVoltage:           goodBattery,
+		ManifoldAbsolutePressure: goodIdleMap,
 	}
 
 	d.Analyse(data)
@@ -494,43 +495,46 @@ func Test_isLambdaFaulty(t *testing.T) {
 	d = NewDataframeAnalysis(3)
 
 	data = MemsData{
-		Time:             "12:00:00.000",
-		EngineRPM:        engineRunning,
-		LambdaVoltage:    lowestLambdaValue,
-		CoolantTemp:      warmEngineTemperature,
-		IntakeAirTemp:    goodIntakeTemperature,
-		IdleBasePosition: goodIdleBasePosition,
-		DTC5:             expectedDTC5,
-		JackCount:        highestJackCount - 1,
-		BatteryVoltage:   goodBattery,
+		Time:                     "12:00:00.000",
+		EngineRPM:                engineRunning,
+		LambdaVoltage:            lowestLambdaValue,
+		CoolantTemp:              warmEngineTemperature,
+		IntakeAirTemp:            goodIntakeTemperature,
+		IdleBasePosition:         goodIdleBasePosition,
+		DTC5:                     expectedDTC5,
+		JackCount:                highestJackCount - 1,
+		BatteryVoltage:           goodBattery,
+		ManifoldAbsolutePressure: goodIdleMap,
 	}
 
 	d.Analyse(data)
 
 	data = MemsData{
-		Time:             "12:01:00.000",
-		EngineRPM:        engineRunning,
-		LambdaVoltage:    goodLambdaValue,
-		CoolantTemp:      warmEngineTemperature,
-		IntakeAirTemp:    goodIntakeTemperature,
-		IdleBasePosition: goodIdleBasePosition,
-		DTC5:             expectedDTC5,
-		JackCount:        highestJackCount - 1,
-		BatteryVoltage:   goodBattery,
+		Time:                     "12:01:00.000",
+		EngineRPM:                engineRunning,
+		LambdaVoltage:            goodLambdaValue,
+		CoolantTemp:              warmEngineTemperature,
+		IntakeAirTemp:            goodIntakeTemperature,
+		IdleBasePosition:         goodIdleBasePosition,
+		DTC5:                     expectedDTC5,
+		JackCount:                highestJackCount - 1,
+		BatteryVoltage:           goodBattery,
+		ManifoldAbsolutePressure: goodIdleMap,
 	}
 
 	d.Analyse(data)
 
 	data = MemsData{
-		Time:             "12:01:31.000",
-		EngineRPM:        engineRunning,
-		LambdaVoltage:    highestLambdaValue,
-		CoolantTemp:      warmEngineTemperature,
-		IntakeAirTemp:    goodIntakeTemperature,
-		IdleBasePosition: goodIdleBasePosition,
-		DTC5:             expectedDTC5,
-		JackCount:        highestJackCount - 1,
-		BatteryVoltage:   goodBattery,
+		Time:                     "12:01:31.000",
+		EngineRPM:                engineRunning,
+		LambdaVoltage:            highestLambdaValue,
+		CoolantTemp:              warmEngineTemperature,
+		IntakeAirTemp:            goodIntakeTemperature,
+		IdleBasePosition:         goodIdleBasePosition,
+		DTC5:                     expectedDTC5,
+		JackCount:                highestJackCount - 1,
+		BatteryVoltage:           goodBattery,
+		ManifoldAbsolutePressure: goodIdleMap,
 	}
 
 	d.Analyse(data)
