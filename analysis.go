@@ -5,6 +5,7 @@ import (
 )
 
 type DataframeAnalysis struct {
+	isMems13               bool
 	datasetLength          int
 	dataset                []MemsData
 	expectedTimeEngineWarm time.Time
@@ -45,6 +46,7 @@ const (
 	secondsPerDegree                   = 11
 	minimumDatasetSize                 = 1
 	defaultIdleThrottleAngle           = 14
+	defaultIdleThrottlePotSensor       = 0.85
 	lowestBatteryVoltage               = 13
 	highestIdleMAPValue                = 45
 	highestIdleCoilTime                = 4
@@ -70,6 +72,7 @@ const (
 	highestJackCount                   = 50
 	lambdaOscillationStandardDeviation = 100
 	highestIdleSpeedDeviation          = 100
+	uk7d03Mems13                       = 13
 )
 
 func NewDataframeAnalysis(datasetLength int) *DataframeAnalysis {
@@ -81,6 +84,9 @@ func NewDataframeAnalysis(datasetLength int) *DataframeAnalysis {
 
 func (df *DataframeAnalysis) Analyse(data MemsData) {
 	if df.isValid(data) {
+		// is the ECU a MEMS 1.3
+		df.isMems13 = df.isMems13ECU(data)
+
 		// analyse the current operational state
 		df.analyseOperationalStatus(data)
 
@@ -107,6 +113,12 @@ func (df *DataframeAnalysis) addToDataset(data MemsData) {
 	if len(df.dataset) > df.datasetLength {
 		df.dataset = df.dataset[1:]
 	}
+}
+
+// is the ECU a MEMS 1.3 - this is determined by the generated dataframe that
+// artificially inserts the value 13 in 7dx03
+func (df *DataframeAnalysis) isMems13ECU(data MemsData) bool {
+	return data.Uk7d03 == uk7d03Mems13
 }
 
 // inspect the current dataframe and return if the frane is valid {

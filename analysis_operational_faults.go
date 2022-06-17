@@ -52,6 +52,11 @@ func (df *DataframeAnalysis) isEngineIdleFaulty(data MemsData) bool {
 	// A high value on a fully warm engine or a low value on a cold engine will cause poor idle speed control.
 	// Idle run line position is calculated by the ECU using the engine coolant temperature sensor.
 
+	if df.isMems13 {
+		// parameter is not available on the MEMS 1.3
+		return false
+	}
+
 	if df.isEngineIdle(data) {
 		if df.isEngineWarm(data) {
 			// fault if > 50 when engine is warm
@@ -91,6 +96,11 @@ func (df *DataframeAnalysis) isVacuumFaulty(data MemsData) bool {
 }
 
 func (df *DataframeAnalysis) isLambdaOutOfRange(data MemsData) bool {
+	if df.isMems13 {
+		// parameter is not available on the MEMS 1.3
+		return false
+	}
+
 	return df.isEngineRunning(data) &&
 		data.LambdaVoltage < lowestLambdaValue || data.LambdaVoltage > highestLambdaValue
 }
@@ -101,6 +111,11 @@ func (df *DataframeAnalysis) isLambdaOutOfRange(data MemsData) bool {
 // then there may be a problem with the stepper motor, throttle cable adjustment or the throttle pot.
 // The count is increased for each journey with no closed throttle, indicating a throttle adjustment problem.
 func (df *DataframeAnalysis) isJackCountHigh(data MemsData) bool {
+	if df.isMems13 {
+		// parameter is not available on the MEMS 1.3
+		return false
+	}
+
 	return data.JackCount >= highestJackCount
 }
 
@@ -112,6 +127,11 @@ func (df *DataframeAnalysis) isCrankshaftSensorFaulty(data MemsData) bool {
 // check if the lambda voltage is oscillating high/low
 // if we don't see the voltage changing then the lambda could be faulty
 func (df *DataframeAnalysis) isLambdaFaulty(data MemsData) bool {
+	if df.isMems13 {
+		// parameter is not available on the MEMS 1.3
+		return false
+	}
+
 	if df.isEngineRunning(data) {
 		if !df.engineStartedAt.IsZero() {
 			currentTime, _ := time.Parse(timeFormat, data.Time)
@@ -173,6 +193,11 @@ func (df *DataframeAnalysis) isThermostatFaulty(data MemsData) bool {
 // need a full dataset for this analysis
 func (df *DataframeAnalysis) isIdleSpeedFaulty(data MemsData) bool {
 	var sum, mean, count float64
+
+	if df.isMems13 {
+		// parameter is not available on the MEMS 1.3
+		return false
+	}
 
 	if df.isEngineRunning(data) {
 		if len(df.dataset) == df.datasetLength {

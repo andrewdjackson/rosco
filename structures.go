@@ -12,7 +12,6 @@ type (
 		ManifoldAbsolutePressure float32
 		BatteryVoltage           float32
 		ThrottlePotSensor        float32
-		ThrottlePosition         float32
 		IdleSwitch               bool
 		AirconSwitch             bool
 		ParkNeutralSwitch        bool

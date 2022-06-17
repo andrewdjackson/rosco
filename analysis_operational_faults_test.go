@@ -685,5 +685,5 @@ func convertDataframeStringToMemsData(dataframe7d string, dataframe80 string) Me
 	ecu := NewECUReaderInstance()
 	df80, _ := ecu.createDataframe80(d80)
 	df7d, _ := ecu.createDataframe7D(d7d)
-	return ecu.createMemsData(df80, df7d)
+	return ecu.createMemsDataframe(df80, df7d)
 }
