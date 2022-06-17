@@ -22,7 +22,7 @@ func NewLoopbackReader(connection string) *LoopbackReader {
 
 	r := &LoopbackReader{}
 
-	if connection == "" {
+	if connection == "" || connection == "loopback" {
 		r.port = r.getVirtualPort()
 		r.ecuId = "99XXXXXX"
 		r.ecuSerial = "LOOPBACK"

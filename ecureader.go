@@ -5,7 +5,6 @@ import (
 	"fmt"
 	log "github.com/sirupsen/logrus"
 	"math"
-	"runtime"
 	"strings"
 )
 
@@ -50,14 +49,18 @@ func NewECUReader(connection string) ECUReader {
 		return NewMEMSReader(connection)
 	}
 
+	// default mems reader
+	return NewMEMSReader(connection)
+
 	// no overrides, default MemsReader
 	// if the os is darwin then override to use the loopback reader as it is more reliable
-
-	if runtime.GOOS == "darwin" {
-		return NewLoopbackReader(connection)
-	} else {
-		return NewMEMSReader(connection)
-	}
+	/*
+		if runtime.GOOS == "darwin" {
+			return NewLoopbackReader(connection)
+		} else {
+			return NewMEMSReader(connection)
+		}
+	*/
 }
 
 // getResponseSize returns the expected number of bytes for a given command
