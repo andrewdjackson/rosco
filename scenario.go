@@ -46,6 +46,13 @@ func GetScenarios(folder string) ([]ScenarioDescription, error) {
 	return scenarios, err
 }
 
+func GetScenarioContents(id string) ([]byte, error) {
+	file := GetFullScenarioFilePath(id)
+	data, err := os.ReadFile(file)
+
+	return data, err
+}
+
 // GetScenario returns the data for the given scenario
 func GetScenario(id string) ScenarioDescription {
 	file := GetFullScenarioFilePath(id)

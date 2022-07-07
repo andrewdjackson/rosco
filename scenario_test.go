@@ -34,6 +34,15 @@ func Test_scenario_GetScenarioFCR(t *testing.T) {
 	then.AssertThat(t, s.Name, is.EqualTo("testdata/nofaults.fcr"))
 }
 
+func Test_scenario_GetScenarioContents(t *testing.T) {
+	data, err := GetScenarioContents("testdata/nofaults.csv")
+	s := string(data)
+
+	then.AssertThat(t, len(data), is.GreaterThan(0))
+	then.AssertThat(t, len(s), is.GreaterThan(0))
+	then.AssertThat(t, err, is.Nil())
+}
+
 func Test_scenario_filterScenarios(t *testing.T) {
 	var s []ScenarioDescription
 
