@@ -1,136 +1,8 @@
-```mermaid
-graph LR
-Engine{RPM} --> |= 0|EngineStopped(engine_running = false)
-Engine{RPM} --> |> 0|EngineRunning(engine_running = true)
+# Sensor Reference
 
-Temp{CTS} --> | < 80 |EngineWarming(warming = true)
-Temp{CTS} --> | > 80 |EngineWarm(at_operating_temp = true)
-```
+<table><tbody><tr><td class="has-text-align-left" data-align="left"><strong>Acronym</strong></td><td class="has-text-align-left" data-align="left"><strong>Sensor</strong></td></tr><tr><td class="has-text-align-left" data-align="left">ATS<br>80x05_intake_air_temp</td><td class="has-text-align-left" data-align="left">Air Temperature Sensor<br>Located under the air filter. <br>Measures the air temperature.</td></tr><tr><td class="has-text-align-left" data-align="left">CTS<br>80x03_coolant_temp</td><td class="has-text-align-left" data-align="left">Coolant Temperature Sensor<br>Located under the injection unit. <br>Measures the coolant (engine) temperature.</td></tr><tr><td class="has-text-align-left" data-align="left">CAS (CPS)<br>80x19_crankshaft_position_sensor</td><td class="has-text-align-left" data-align="left">Crank Angle Sensor (Crankshaft Position Sensor)<br>Located at the front / side of the engine.<br>Measures the position of the engine relative to TDC and is used to calculate the RPM.</td></tr><tr><td class="has-text-align-left" data-align="left">MAP<br>80x07_map_kpa</td><td class="has-text-align-left" data-align="left">Manifold Absolute Pressure Sensor<br>Located in the ECU, connects via vacuum pipes and fuel trap from the rear of the inlet manifold.<br>Measures the engine load</td></tr><tr><td class="has-text-align-left" data-align="left">TPS<br>80x09_throttle_pot</td><td class="has-text-align-left" data-align="left">Throttle Potentiometer Sensor<br>Located right of the air filter connected to throttle linkage.<br>Measures the throttle position</td></tr><tr><td class="has-text-align-left" data-align="left">IAC(V)<br>80x12_iac_position</td><td class="has-text-align-left" data-align="left">Idle Air Control (Valve)<br>Controls the throttle / stepper motor to adjust air : fuel ratio when idling and smooth transition when lifting off the throttle.</td></tr></tbody></table>
 
-```mermaid
-graph LR  
-Start{engine_running = true} --> Ready(Sample for 20s)
-Ready --> QueryThrottle{Throttle < 4 degrees}  
-QueryThrottle --> |Throttle Idle|EngineIdle(Engine Idle)
-QueryThrottle -- Throttle Active --> QueryCruising{CTS > 80C}  
-QueryCruising -- Engine Warm --> QueryCruiseIdle{RPM STD 5%}  
-QueryCruiseIdle --> |Yes|IsCruising(Cruising) 
-EngineIdle --> QueryTemp{CTS > 80C}  
-QueryTemp -- Engine Cold --> QueryIdleCold{900 > RPM < 1200}  
-QueryTemp -- Engine Warming --> QueryWarming{RPM = +Trend}  
-QueryIdleCold --> |No|CTSFault(CTS or Thermostat Fault?)
-EngineIdle --> QueryIdleOffset{Idle Offset < 100}  
-QueryIdleOffset --> |No|IdleOffsetFault(Idle Error)
-QueryTemp -- Engine Warm --> QueryIdleHot{10 > Idle Hot < 50}  
-QueryIdleHot --> |No|IdleHotFault(Stepper Motor Fault?)
-```
-
-## MemsFCR / ECU Communication Sequence
-
-```mermaid
-sequenceDiagram
-autonumber
-Note over MemsFCR, ECU: Initialisation
-MemsFCR ->>+ ECU: Connect
-ECU ->>- MemsFCR: Connected
-MemsFCR ->>+ ECU: 0xCA
-Note right of ECU: Initialise Command A 
-ECU ->>- MemsFCR: 0xCA
-MemsFCR ->>+ ECU: 0x75
-Note right of ECU: Initialise Command B
-ECU ->>- MemsFCR: 0x75 
-MemsFCR ->>+ ECU: 0xF4
-Note right of ECU: Heartbeat
-ECU ->>- MemsFCR: 0xF4 
-MemsFCR ->>+ ECU: 0xD0
-Note right of ECU: ECU ID
-ECU ->>- MemsFCR: 0x0D 0x99 0x99 0x99 0x99 
-Note over MemsFCR, ECU: Request Dataframe Loop
-loop Every second
-activate MemsFCR
-MemsFCR ->>+ ECU: 0x7D
-Note right of ECU: Dataframe 0x7D
-ECU ->>- MemsFCR: 0x7D XX XX XX.. XX
-MemsFCR ->>+ ECU: 0x80
-Note right of ECU: Dataframe 0x80
-ECU ->>- MemsFCR: 0x80 XX XX XX.. XX
-deactivate MemsFCR
-end
-```
-
-## MemsFCR Diagnostics Analysis Tree
-
-```mermaid  
-graph TB  
-Start{Is RPM > 0} --> |Engine is running| Ready(Sample for 20s)
-Ready -- Every Second --> Ready  
-Ready --> QueryMAP{30 > MAP < 60}
-QueryMAP --> |MAP Invalid|MAPF(MAP Fault)
-Ready --> QueryCPS{CPS = 0}  
-QueryCPS --> |Crankshaft Position Invalid|CPSF(CPS Fault)  
-Ready --> QueryCOIL{Coil Time < 4ms}  
-QueryCOIL --> |Coil Time Too Long|COILF(Coil Fault)  
-Ready --> QueryThrottle{Throttle < 4 degrees}  
-QueryThrottle --> |Throttle Idle|EngineIdle(Engine Idle)
-QueryThrottle -- Throttle Active --> QueryCruising{CTS > 80C}  
-QueryCruising -- Engine Warm --> QueryCruiseIdle{RPM STD 5%}  
-QueryCruiseIdle --> |Yes|IsCruising(Cruising) 
-EngineIdle --> QueryTemp{CTS > 80C}  
-QueryTemp -- Engine Cold --> QueryIdleCold{900 > RPM < 1200}  
-QueryTemp -- Engine Warming --> QueryWarming{RPM = +Trend}  
-QueryIdleCold --> |No|CTSFault(CTS or Thermostat Fault?)
-EngineIdle --> QueryIdleOffset{Idle Offset < 100}  
-QueryIdleOffset --> |No|IdleOffsetFault(Idle Error)
-QueryTemp -- Engine Warm --> QueryIdleHot{10 > Idle Hot < 50}  
-QueryIdleHot --> |No|IdleHotFault(Stepper Motor Fault?)
-```
-
-## Idle Speed Diagnostic Tree
-```mermaid  
-graph LR  
-Start{Is RPM > 0} --> |Engine is running| Ready(Sample for 20s)
-Ready --> QueryThrottle{Throttle < 4 degrees}  
-QueryThrottle --> |Throttle Idle|EngineIdle(Engine Idle)
-QueryThrottle -- Throttle Active --> QueryCruising{CTS > 80C}  
-QueryCruising -- Engine Warm --> QueryCruiseIdle{RPM STD 5%}  
-QueryCruiseIdle --> |Yes|IsCruising(Cruising) 
-EngineIdle --> QueryTemp{CTS > 80C}  
-QueryTemp -- Engine Cold --> QueryIdleCold{900 > RPM < 1200}  
-QueryTemp -- Engine Warming --> QueryWarming{RPM = +Trend}  
-QueryIdleCold --> |No|CTSFault(CTS or Thermostat Fault?)
-EngineIdle --> QueryIdleOffset{Idle Offset < 100}  
-QueryIdleOffset --> |No|IdleOffsetFault(Idle Error)
-QueryTemp -- Engine Warm --> QueryIdleHot{10 > Idle Hot < 50}  
-QueryIdleHot --> |No|IdleHotFault(Stepper Motor Fault?)
-```
-
-## MAP Diagnostic Tree
-```mermaid  
-graph LR  
-Start{Is RPM > 0} --> |Engine is running| Ready(Sample for 20s)
-Start --> |Engine off| EngineOff(Ignition On, Engine Off)
-Ready -- Every Second --> Ready  
-Ready --> QueryMAP{30 > MAP < 60}
-QueryMAP --> |MAP Invalid|MAPF(MAP Fault)
-EngineOff --> QueryMAPOff{MAP < 90}
-QueryMAPOff --> |MAP Invalid|MAPF(MAP Fault)
-```
-
-## O2 System Diagnostic Tree
-```mermaid  
-graph LR  
-Start{Is RPM > 0} --> |Engine is running| Ready(Sample for 20s)
-Ready --> QueryTemp{CTS > 80C} 
-QueryTemp --> |Engine is warm|WarmEngine(Operating Temp)
-WarmEngine --> QueryLambdaStatus{Lambda Status = 1}
-QueryLambdaStatus --> |No|LambdaInvalid(Lambda Fault)
-WarmEngine --> QueryLambdaOsc{Lambda Oscillating?}
-QueryLambdaOsc --> |No|LambdaInvalid
-WarmEngine --> QueryLambdaVoltage{10mV > Lambda Voltage < 900mV}
-QueryLambdaVoltage --> |No|LambdaInvalid
-```
-
-## MemsFCR Log File Format and Applied Calculations to Raw Data
+# MemsFCR Log File Format and Applied Calculations to Raw Data
 | Column | Description | Calculation Applied |
 |--------|-------------|-------------|
 | #time| event timestamp hh:mm:ss.sss ||
@@ -214,3 +86,215 @@ QueryLambdaVoltage --> |No|LambdaInvalid
 | thermostat_fault| coolant temperature changes over time indicate thermostat fault (could also be a CPS fault) | true / false |
 | crankshaft_sensor_fault| crankshaft position sensor (CPS) reading is outside expected parameters | true / false |
 | coil_fault| coil is outside expected parameters | true / false |
+
+# MemsFCR <-> ECU Initialisation Sequence
+```mermaid
+sequenceDiagram
+autonumber
+Note over MemsFCR, ECU: Initialisation
+MemsFCR ->>+ ECU: Connect
+ECU ->>- MemsFCR: Connected
+MemsFCR ->>+ ECU: 0xCA
+Note right of ECU: Initialise Command A 
+ECU ->>- MemsFCR: 0xCA
+MemsFCR ->>+ ECU: 0x75
+Note right of ECU: Initialise Command B
+ECU ->>- MemsFCR: 0x75 
+MemsFCR ->>+ ECU: 0xF4
+Note right of ECU: Heartbeat
+ECU ->>- MemsFCR: 0xF4 
+MemsFCR ->>+ ECU: 0xD0
+Note right of ECU: ECU ID
+ECU ->>- MemsFCR: 0x0D 0x99 0x99 0x99 0x99 
+Note over MemsFCR, ECU: Request Dataframe Loop
+loop Every second
+activate MemsFCR
+MemsFCR ->>+ ECU: 0x7D
+Note right of ECU: Dataframe 0x7D
+ECU ->>- MemsFCR: 0x7D XX XX XX.. XX
+MemsFCR ->>+ ECU: 0x80
+Note right of ECU: Dataframe 0x80
+ECU ->>- MemsFCR: 0x80 XX XX XX.. XX
+deactivate MemsFCR
+end
+```
+
+# ECU Faults
+```mermaid
+graph LR
+FaultCodesDTC0("80x0d-0e_fault_codes (0x0d byte)") --> |& b00000001|CTSFault(["CTS_fault = true"])
+FaultCodesDTC0 --> |& b00000010|ATSFault(["ATS_fault = true"])
+FaultCodesDTC1("80x0d-0e_fault_codes (0x0e byte)") --> |& b00000010|FuelPumpFault(["fuel_pump_circuit_fault = true"])
+FaultCodesDTC1 --> |& b01000000|TPSFault(["TPS_circuit_fault = true"])
+```
+
+# Operational Status
+## Is Engine Running?
+```mermaid
+flowchart LR
+Engine("80x01-02_engine-rpm (RPM) > 0") --> EngineRunning(["engine_running = true"])
+EngineRunning --> EngineStartTime(["record engine start time"])
+```
+## Is Engine at Operating Temperature?
+```mermaid
+flowchart LR
+Temp("80x03_coolant_temp (CTS) > 80&deg;C") -- "false" ---> EngineWarming(["engine_warming = true"])
+Temp -- "true" ---> EngineWarm(["engine_at_operating_temp = true"])
+```
+## Is Engine at Idle?
+```mermaid
+flowchart LR
+Running(engine_running = true) --> Metric
+Metric("7dx02_throttle_angle * 6 / 10 <= 14&deg") --> Result([engine_idle = true])
+```
+## Is Throttle Active?
+```mermaid
+flowchart LR
+Engine("80x01-02_engine-rpm (RPM)> 1300") --> ThrottleActive(["throttle_active = true"])
+Throttle("7dx02_throttle_angle * 6 / 10 > 14&deg;") --> ThrottleActive
+```
+## Is Closed Loop (O2 System) Active?
+```mermaid
+flowchart LR
+Temp("7dx0A_closed_loop > 0") --> ClosedLoop(["closed_loop = true"])
+```
+
+# Operational Faults (Diagnosed)
+
+## Is Battery Voltage too low?
+```mermaid
+flowchart LR
+Metric("80x08_battery_voltage < 13V") --> Result(["battery_low = true"])
+```
+## Is Coil faulty?
+```mermaid
+flowchart LR
+Running("engine_running = true") --> BatteryCheck
+BatteryCheck("battery_low = false") --> Metric
+Metric("80x17-18_coil_time * 0.0002 > 4ms") --> Result(["coil_fault = true"])
+```
+## Is MAP too high?
+```mermaid
+flowchart LR
+Running("engine_idle = true") --> Metric
+Metric("80x07_map_kpa > 45") --> Result(["map_fault = true"])
+```
+## Is O2 System active?
+```mermaid
+flowchart LR
+Metric("7dx09_lambda_sensor_status > 0") --> Result(["o2_system_active = true"])
+```
+## Engine Idle fault?
+```mermaid
+flowchart LR
+Running("engine_idle = true") --> EngineAtTemp{{"engine_at_operating_temp"}}
+EngineAtTemp -- "true" ---> MetricHot
+EngineAtTemp -- "false" ---> MetricCold
+MetricHot("7dx0F_idle_base_pos > 55") --> Result(["idle_fault = true"])
+MetricCold("7dx0F_idle_base_pos < 45") --> Result(["idle_fault = true"])
+```
+## Engine Hot Idle fault?
+```mermaid
+flowchart LR
+Running("engine_idle = true") --> PreCheck
+PreCheck("engine_at_operating_temp = true") --> Metric
+Metric("7dx0F_idle_base_pos") --> |" > 55"|Result(["coil_fault = true"])
+```
+## Idle Air Control (IAC) Fault?
+```mermaid
+flowchart LR
+```
+## Vacuum Pipe Fault?
+```mermaid
+flowchart LR
+```
+## Are Lambda readings out of range?
+```mermaid
+flowchart LR
+```
+## Is Jack Count too high?
+```mermaid
+flowchart LR
+```
+## Is Crankshaft Sensor (CPS/CAS) faulty? 
+```mermaid
+flowchart LR
+```
+## Is Lambda Sensor faulty?
+```mermaid
+flowchart LR
+```
+## Is Lambda Sensor oscillating?
+```mermaid
+flowchart LR
+```
+## Is Idle Speed faulty?
+```mermaid
+flowchart LR
+```
+
+# Idle / Cruise Speed Diagnostic Tree
+```mermaid
+flowchart LR
+Throttle{{7dx02_throttle_angle}} --> |"< 4&deg;"|ThrottleIdle([throttle_active = false])
+Throttle --> |"> 4&deg;"|ThrottleIdle(["throttle_active = true"])
+
+ThrottleIdle --> QueryIdleOffset{{80x13-14_idle_error > 100}}
+QueryIdleOffset --> IdleOffsetFault(["idle_error_fault = true"])
+```
+```mermaid
+graph LR  
+Start{{engine_running = true}} --> Ready(Sample for 20s)
+Ready -- Every Second --> Ready 
+Ready --> QueryThrottle{{throttle_active}}
+QueryThrottle --> |true|QueryCruiseIdle{{"RPM stddev < 5%"}}  
+QueryCruiseIdle --> IsCruising(["✪ cruising = true"])
+ 
+QueryThrottle --> |false|QueryTemp{{at_operating_temp}}  
+QueryTemp --> |true|QueryIdleHot{{10 > 80x10_idle_hot < 50}}  
+QueryIdleHot --> IdleHotFault(["✪ idle_hot_fault = true"])
+QueryTemp --> |false|QueryIdleCold{{900 > RPM < 1200}}  
+QueryIdleCold --> QueryWarming{{CTS increasing temp}}  
+QueryWarming --> |Yes|EngineWarming(["warming = true"])
+QueryWarming --> |No|CTSFault(["thermostat_fault = true"])
+```
+
+# Lambda / O2 Diagnostic Tree
+```mermaid
+graph LR  
+Start{{engine_running = true}} --> Ready(Sample for 20s)
+Ready -- Every Second --> Ready 
+Ready --> WarmEngine{{at_operating_temp = true}} 
+WarmEngine --> QueryLambdaStatus{{7dx09_lambda_sensor_status = 1}}
+QueryLambdaStatus --> |No|LambdaFault(["o2_system_fault = true"])
+WarmEngine --> QueryLambdaOsc{{7dx06_lambda_voltage oscillating?}}
+QueryLambdaOsc --> |No|LambdaOscFault(["lambda_oscillation_fault = true"])
+LambdaOscFault --> LambdaFault
+WarmEngine --> QueryLambdaVoltage{{10mV > 7dx06_lambda_voltage < 900mV}}
+QueryLambdaVoltage --> |No|LambdaRangeFault(["lambda_range_fault = true"])
+LambdaRangeFault --> LambdaFault
+```
+
+# MAP Diagnostic Tree
+```mermaid
+graph LR  
+Start{{engine_running}} --> |true| Ready(Sample for 20s)
+Ready -- Every Second --> Ready  
+Ready --> QueryMAP{{30 > 80x07_map_kpa < 60}}
+QueryMAP --> MAPF(["map_fault = true"])
+Start --> |false|QueryMAPOff{{80x07_map_kpa < 90}}
+QueryMAPOff --> MAPF
+```
+
+# ECU Sensor Diagnostics
+```mermaid
+graph LR  
+Start{{engine_running = true}} --> Ready(Sample for 20s)
+Ready -- Every Second --> Ready  
+Ready --> QueryCAS{{80x19_crankshaft_position_sensor = 0}}  
+QueryCAS --> CASF(["crankshaft_sensor_fault = true"])  
+Ready --> QueryCOIL{{80x17-18_coil_time < 4ms}}  
+QueryCOIL --> COILF(["coil_fault = true"])
+```
+
+
