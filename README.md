@@ -45,39 +45,46 @@ FaultCodesDTC0 --> |& b00000010|ATSFault(["ATS_fault = true"])
 FaultCodesDTC1("80x0d-0e_fault_codes (0x0e byte)") --> |& b00000010|FuelPumpFault(["fuel_pump_circuit_fault = true"])
 FaultCodesDTC1 --> |& b01000000|TPSFault(["TPS_circuit_fault = true"])
 ```
-
+<br><br>
 # Operational Status
 ## Is Engine Running?
+If we have revs, the engine must be running :)<br>
+The engine start time is recorded to determine when the operating temperature is expected to be reached and when the O2 system should activate.
 ```mermaid
 flowchart LR
 Engine("80x01-02_engine-rpm (RPM) > 0") --> EngineRunning(["engine_running = true"])
 EngineRunning --> EngineStartTime(["record engine_start_time"])
 ```
 ## Is Engine at Operating Temperature?
+Used in the diagnostics to determine if the engine has reached the operating temperature.
 ```mermaid
 flowchart LR
 Temp{{"80x03_coolant_temp (CTS) > 80&deg;C"}} -- "false" ---> EngineWarming(["engine_warming = true"])
 Temp -- "true" ---> EngineWarm(["engine_at_operating_temp = true"])
 ```
 ## Is Engine at Idle?
+RPM can't be used as a reliable indicator of idle so the throttle is used to determine whether the engine is at idle.
 ```mermaid
 flowchart LR
 Running(engine_running) --> Metric
 Metric("7dx02_throttle_angle * 6 / 10 <= 14&deg") --> Result([engine_idle = true])
 ```
 ## Is Throttle Active?
+If the RPM is above any cold start value OR the throttle is depressed (14&deg; is pretty conservative) then the throttle is active.
 ```mermaid
 flowchart LR
 Engine("80x01-02_engine-rpm (RPM)> 1300") --> ThrottleActive(["throttle_active = true"])
 Throttle("7dx02_throttle_angle * 6 / 10 > 14&deg;") --> ThrottleActive
 ```
-## Is Closed Loop (O2 System) Active?
+## Is Closed Loop Mode Active?
+The ECU controls the air : fuel mix based on the readings from the primary sensors, lambda, MAP and temperature.<br>
+If the ECU determines these systems are working correctly it will enter closed loop mode. The car is unlikely to pass the emissions tests if it cannot enter closed loop mode.
 ```mermaid
 flowchart LR
 Temp("7dx0A_closed_loop > 0") --> ClosedLoop(["closed_loop = true"])
 ```
-
-# Operational Faults (Diagnosed)
+<br><br>
+# Operational Faults
 
 ## Is Battery Voltage too low?
 ```mermaid
@@ -96,11 +103,6 @@ Metric("80x17-18_coil_time * 0.0002 > 4ms") --> Result(["coil_fault = true"])
 flowchart LR
 Running("engine_idle") --> Metric
 Metric("80x07_map_kpa > 45") --> Result(["map_fault = true"])
-```
-## Is O2 System active?
-```mermaid
-flowchart LR
-Metric("7dx09_lambda_sensor_status > 0") --> Result(["o2_system_active = true"])
 ```
 ## Engine Idle fault?
 ```mermaid
