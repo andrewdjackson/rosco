@@ -87,11 +87,14 @@ Temp("7dx0A_closed_loop > 0") --> ClosedLoop(["closed_loop = true"])
 # Operational Faults
 
 ## Is Battery Voltage too low?
+The battery voltage is important for the sensors to provide correct values. A low battery can be the cause of a number of phantom faults.ß 
 ```mermaid
 flowchart LR
 Metric("80x08_battery_voltage < 13V") --> Result(["battery_low = true"])
 ```
 ## Is Coil faulty?
+The time for the ignition coil to charge up to its specified current, as measured by the MEMS ECU. With a battery voltage of about 14V, this value should be about 2-3mS.<br> 
+A high value for coil charge time may indicate a problem with the ignition coil primary circuit. A failing CAS sensor can also cause the coil time to increase.
 ```mermaid
 flowchart LR
 Running("engine_running") --> BatteryCheck
@@ -99,12 +102,17 @@ BatteryCheck("battery_low = false") --> Metric
 Metric("80x17-18_coil_time * 0.0002 > 4ms") --> Result(["coil_fault = true"])
 ```
 ## Is MAP too high?
+The MAP sensor should be under 45kPA (ideally 35kPA) when the engine is at idle. A high value indicates a vacuum fault.
 ```mermaid
 flowchart LR
 Running("engine_idle") --> Metric
 Metric("80x07_map_kpa > 45") --> Result(["map_fault = true"])
 ```
 ## Engine Idle fault?
+This Idle Base Position is the number of steps from 0 which the ECU will use as guide for starting idle speed control during engine warm up. <br>
+The value will start at quite a high value (>100 steps) on a very cold engine and fall to < 50 steps on a fully warm engine.
+A high value on a fully warm engine or a low value on a cold engine will cause poor idle speed control.<br>
+Idle position is calculated by the ECU using the engine coolant temperature sensor.
 ```mermaid
 flowchart LR
 Running("engine_idle = true") --> EngineAtTemp{{"engine_at_operating_temp"}}
@@ -114,6 +122,8 @@ MetricHot("7dx0F_idle_base_pos > 55") --> Result(["idle_fault = true"])
 MetricCold("7dx0F_idle_base_pos < 45") --> Result(["idle_fault = true"])
 ```
 ## Engine Hot Idle fault?
+The Hot Idle is the number of IACV steps from fully closed (0) which the ECU has learned as the correct position to maintain the target idle speed with a fully warmed up engine.<br>
+If this value is outside the range 10 - 50 steps, then this is an indication of a possible fault condition or poor adjustment. 
 ```mermaid
 flowchart LR
 Running("engine_idle") --> PreCheck
